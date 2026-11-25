@@ -30,4 +30,5 @@ One YAML file per snapshot, validated against `schemas/fees.schema.json` by
 | `jetstar.yaml` | Jetstar Airways / Jetstar Japan airport prices (Asia-Pacific) | Airport checked-bag and extra carry-on prices. Prepaid online bag prices vary by route and were **not** a single number on that page |
 
 Add another region by reading that airline's official page and opening a pull request. Do not
-copy a fee from a blog, from memory, or from a different airline's file.
+copy a fee from a blog, from memory, or from a different airline's file. JAL, ANA, and Thai
+have no file here: an official fee table for them was not opened, so nothing was invented.

@@ -75,7 +75,7 @@ read the ratio on that page. If a card has no airline transfer programme, say so
 - **IDFC FIRST:** Wealth and Ashva. Mayura is already in the file and does not transfer.
 - **ICICI:** Emeralde and Sapphiro.
 - **Axis:** Reserve, Olympus, and Burgundy Private are other columns of the Travel EDGE table.
-  Magnus and Magnus for Burgundy are already in the file.
+  Magnus, Magnus for Burgundy, and Horizon are already in the file.
 
 A weekly workflow (`.github/workflows/card-freshness.yml`) opens or updates an issue listing
 stale and unverified entries. It only has permission to read the repo and write issues.

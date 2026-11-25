@@ -1,0 +1,18 @@
+# Official published award charts only. A chart is not award space, and a mileage number
+# on a chart was not copied here. Omit a programme when no official chart URL was confirmed.
+schema_version: 1
+note: >-
+  JAL's own international award chart URL is listed below. A separate JAL partner-airline
+  chart URL was not confirmed, so it is omitted. ANA and Thai describe charts on their award
+  pages in awards/links.yaml; a distinct chart URL was not opened, so they are not listed here.
+programs:
+  - id: jal
+    name: JAL Mileage Bank
+    chart: JAL international award tickets on JAL flights
+    url: "https://www.jal.co.jp/jp/en/jalmile/use/jal/inter/routemiles.html"
+    last_checked: "2026-11-25"
+    verified: false
+    notes: >-
+      Official jal.co.jp page titled "JAL International Award Tickets required mileage chart".
+      This environment received HTTP 403, so the mileage numbers were not read. Do not fill
+      them in from memory. Partner-airline chart omitted.

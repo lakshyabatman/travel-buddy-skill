@@ -165,6 +165,57 @@ programs:
     partners_source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
 
   # ---------------------------------------------------------------------------
+  axis_edge_miles_horizon:
+    issuer: Axis Bank
+    currency_name: EDGE Miles
+    transfer_portal: "Axis Mobile app > EDGE Miles dashboard, or https://traveledge.axis.bank.in > Points/Miles Transfer"
+    min_transfer: "500 EDGE Miles (https://www.axis.bank.in/miles-transfer and the Horizon product terms)"
+    reversible: false
+    general_sources:
+      - https://traveledge.axis.bank.in/travel/common/termsandcondition
+      - https://www.axis.bank.in/miles-transfer
+      - https://www.axis.bank.in/cards/credit-card/axis-horizon-credit-card
+      - https://www.axis.bank.in/docs/default-source/default-document-library/credit-cards/terms-and-conditions-for-horizon-credit-card.pdf?sfvrsn=5f8724c2_6
+    groups_note: >-
+      Same official Group A / Group B list as the other Travel EDGE cards, read 2026-11-25.
+      Caps are EDGE Miles because Horizon earns EDGE Miles. They are not EDGE Reward Points.
+    ratio_column: "Horizon Credit Card, in the EDGE MILES section of the Travel EDGE conversion table"
+    linking_rules: >-
+      One loyalty ID per partner at a time. Name on the card must match the loyalty account.
+    partners:
+      - {name: Accor Live Limitless (ALL), group: A, type: hotel, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: AirAsia rewards, group: B, type: airline, ratio: "1:1", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Air Canada Aeroplan, group: A, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air France-KLM Flying Blue, group: A, type: airline, alliance: SkyTeam, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air India Maharaja Club, group: A, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25}
+      - {name: British Airways Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Cathay Asia Miles, group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Ethiopian ShebaMiles, group: A, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Etihad Guest, group: A, type: airline, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Finnair Plus (Avios), group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Hilton Honors, group: B, type: hotel, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: IHG One Rewards, group: B, type: hotel, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: IndiGo BluChip, group: B, type: airline, ratio: "2:1", transfer_time: "up to 1-2 working days", verified: true, last_checked: 2026-11-25, notes: "Standard Horizon cell is 2:1. The same page has a limited-period introductory table with other ratios. Do not use the intro ratio; it can be withdrawn."}
+      - {name: JAL Mileage Bank, group: A, type: airline, alliance: oneworld, ratio: "1:1", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Lufthansa Group Miles & More, group: B, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Orchid Rewards, group: B, type: hotel, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: The Postcard Sunshine Club, group: B, type: hotel, ratio: "1:1", transfer_time: "up to 2 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Qantas Frequent Flyer, group: A, type: airline, alliance: oneworld, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Qatar Airways Privilege Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Radisson Rewards, group: B, type: hotel, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Singapore Airlines KrisFlyer, group: A, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: SpiceJet SpiceClub, group: B, type: airline, ratio: "1:1", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Thai Airways Royal Orchid Plus, group: A, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Turkish Airlines Miles&Smiles, group: A, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: United MileagePlus, group: A, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Vietnam Airlines Lotusmiles, group: A, type: airline, alliance: SkyTeam, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Wyndham Rewards, group: A, type: hotel, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+    partners_source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+    removed_partners:
+      - {name: Marriott Bonvoy, removed: "not in the live Group A or Group B list on 2026-11-25", notes: "A Marriott row remains inside an HTML comment on the terms page. It is not a Horizon partner here."}
+      - {name: IOCL XTRAREWARDS, removed: "Horizon cell is NA on the 2026-11-25 table", notes: "The 3:10 ratio on that row is the Atlas cell, not Horizon."}
+
+  # ---------------------------------------------------------------------------
   amex_india_mr:
     issuer: American Express Banking Corp. (India)
     currency_name: Membership Rewards (MR) points
@@ -375,6 +426,29 @@ cards:
     last_checked: 2026-11-25
     verified: true
 
+  - id: axis_horizon
+    name: Axis Bank Horizon
+    program: axis_edge_miles_horizon
+    ratio_note: >-
+      Ratios are the Horizon column of the EDGE MILES half of the official Travel EDGE table,
+      read 2026-11-25. Not the Atlas column and not EDGE Reward Points. The Horizon product
+      terms call the ratios dynamic and point at this Miles Transfer table.
+    caps:
+      annual_total: "5,00,000 EDGE Miles per customer ID per calendar year (1 Jan-31 Dec)"
+      annual_group_a: "1,00,000 EDGE Miles (shared by all Group A partners)"
+      annual_group_b: "4,00,000 EDGE Miles (shared by all Group B partners)"
+      verified: true
+    fees:
+      value: null
+      note: "A Horizon transfer fee was not confirmed in the MITC text extracted on 2026-11-25. Treat the fee as unknown and read it in the transfer portal."
+    notes: >-
+      Horizon earns EDGE Miles (5 per INR 100 on Travel EDGE and airline spends, 2 per INR 100
+      otherwise; product page and product terms). An older product PDF that said 1 EDGE Mile
+      equals 1 partner point is not the current table: several partners are 2:1.
+    source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+    last_checked: 2026-11-25
+    verified: true
+
   - id: amex_india_mr
     name: "American Express India Membership Rewards (Platinum Charge, Platinum Travel, Gold Charge; also MRCC / Platinum Reserve / SmartEarn)"
     program: amex_india_mr
@@ -454,7 +528,7 @@ cards:
 
 # ---------------------------------------------------------------------------
 # BACKLOG (not in this file yet; contributions welcome - see CONTRIBUTING.md)
-# - Axis Reserve, Olympus, Burgundy Private (other columns of the same Travel EDGE table)
+# - Axis Reserve, Olympus, Burgundy Private (other columns of the same Travel EDGE table; Horizon is included)
 # - ICICI Emeralde / Sapphiro
 # - IDFC FIRST Wealth / Ashva
 # - SBI Card Elite / Aurum / Miles

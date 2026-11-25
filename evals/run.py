@@ -38,8 +38,8 @@ def load():
             raise SystemExit("duplicate id " + case["id"])
         ids.append(case["id"])
     n = len(doc["cases"])
-    if not 10 <= n <= 15:
-        raise SystemExit(f"expected 10 to 15 cases, found {n}")
+    if not 10 <= n <= 20:
+        raise SystemExit(f"expected 10 to 20 cases, found {n}")
     return doc
 
 

@@ -72,3 +72,39 @@ programmes:
     source_url: "https://www.united.com/en/us/fsr/choose-flights?f=SNA&t=LAS&d=2023-03-10&px=1&sc=7"
     last_checked: "2026-11-25"
     verified: false
+  - id: jal
+    name: JAL Mileage Bank
+    supports_prefill: false
+    round_trip_prefill: false
+    template: null
+    search_url: "https://www.jal.co.jp/jp/en/jmb/tokuten_rn/inter.html"
+    cabin_in_url: false
+    login_required_to_open: true
+    limits: "Public page describes the international award seat-availability calendar. No origin, destination, or date query string was confirmed. Booking needs a JMB login. This environment received HTTP 403 from jal.co.jp on 2026-11-25, so the page was not re-read here."
+    source_url: "https://www.jal.co.jp/jp/en/jmb/tokuten_rn/inter.html"
+    last_checked: "2026-11-25"
+    verified: false
+  - id: ana
+    name: ANA Mileage Club
+    supports_prefill: false
+    round_trip_prefill: false
+    template: null
+    search_url: "https://www.ana.co.jp/en/au/amc/international-flight-awards/"
+    cabin_in_url: false
+    login_required_to_open: true
+    limits: "Public award page opened on 2026-11-25. It says to log in and apply for an ANA international flight award. No route, date, or passenger query string was confirmed. The page is not proof of a seat."
+    source_url: "https://www.ana.co.jp/en/au/amc/international-flight-awards/"
+    last_checked: "2026-11-25"
+    verified: true
+  - id: thai
+    name: Thai Airways Royal Orchid Plus
+    supports_prefill: false
+    round_trip_prefill: false
+    template: null
+    search_url: "https://www.thaiairways.com/en-us/content/spend-miles/air-awards/"
+    cabin_in_url: false
+    login_required_to_open: true
+    limits: "Public air-awards page opened on 2026-11-25. It says members reserve online after logging in. No route or date query string was confirmed. The page is not proof of a seat."
+    source_url: "https://www.thaiairways.com/en-us/content/spend-miles/air-awards/"
+    last_checked: "2026-11-25"
+    verified: true

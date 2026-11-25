@@ -48,6 +48,15 @@ class HistoryStoreTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
             self.assertEqual(stat.S_IMODE(path.parent.stat().st_mode), 0o700)
 
+    def test_existing_world_readable_file_is_chmodded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "history.jsonl"
+            path.write_text("")
+            os.chmod(path, 0o644)
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o644)
+            history.record_observation(_obs(), path)
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o600)
+
     def test_existing_parent_is_not_chmodded(self):
         with tempfile.TemporaryDirectory() as tmp:
             parent = Path(tmp) / "keep"

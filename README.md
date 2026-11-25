@@ -91,16 +91,20 @@ fetch time.
 
 Notes:
 - `fast-flights` is an unofficial scraper. It was tested working on 2026-11-25 (v3.1.0) on
-  LHR–JFK and BLR–DEL. Those were test routes, not preferred origins. It can break or be
+  LHR–JFK and SIN–SYD. Those were test routes, not preferred origins. It can break or be
   rate-limited at any time. If it fails, use Google Flights, Skyscanner or Kayak in a browser.
-- Round-trip results are less complete than one-way searches, so cross-check round trips in a
-  browser.
-- `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × `--airports` small.
+- A round trip prints the outbound leg and the return leg. If the return was not in the
+  result, the row says `return not fetched` instead of guessing. Elapsed time includes
+  layovers. An airport code with no usable result is retried as its metro city code
+  (`HND` → `TYO`). `--origin-airports` and `--dest-airports` search several airports and merge
+  them. Still cross-check a round trip in a browser.
+- `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × airports small.
 
 `search.py` is an optional, unofficial scraper. The skill works without it. When a search
 response contains Google's price-history graph, the script stores that graph plus the fare in
 `~/.flight-points-optimiser/history.jsonl` (override with `--history` or
-`$FLIGHT_POINTS_HISTORY`). The directory is mode 0700 and the file is mode 0600. It stores
+`$FLIGHT_POINTS_HISTORY`). The directory is mode 0700 and the file is mode 0600, including
+an existing file the next time it is written. It stores
 the route, dates, cabin, passenger counts, currency, and price. It does not store names,
 passport numbers, or card numbers. `python history.py ORIG DEST YYYY-MM-DD` prints min,
 median, max, and where the latest point sits. If the graph is missing, it says so. That is

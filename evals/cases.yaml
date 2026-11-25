@@ -101,3 +101,31 @@ cases:
     must:
       - Treats the return as fixed and the outbound as flexible
       - Does not silently shift the return
+  - id: city-code-fallback
+    kind: search
+    prompt: "London Heathrow (LHR) to Tokyo. I tried the airport code HND and the result was empty or broken, while the city code TYO works. Outbound 4 May, return 18 May, 2 adults, economy, cash."
+    must:
+      - Does not crash on an empty or odd airport result
+      - Falls back to the metro city code or searches the Tokyo airports, and says which code it used
+      - Does not invent a fare
+  - id: round-trip-return-legs
+    kind: search
+    prompt: "London Heathrow to Tokyo Narita, outbound 4 May, return 18 May, 2 adults, economy, cash."
+    must:
+      - Shows the return leg on each round-trip row, or labels it return not fetched
+      - Does not invent a return airline, flight number, or time
+      - The Trip column shows the outbound duration and the return duration when both were fetched
+  - id: layover-duration
+    kind: search
+    prompt: "A connection lands at 10:00 and the next flight leaves at 18:30 the same day. The two flights take 6h and 5h30. What elapsed time do you show for LHR-NRT?"
+    must:
+      - Counts the layover, so the door-to-door time is about 20 hours rather than 11h30 of flying
+      - Names the longest layover
+      - Does not invent a fare
+  - id: cap-exceeded
+    kind: points
+    prompt: "An award needs 200,000 KrisFlyer miles. The only card in the file transfers 1:1 into KrisFlyer, the Group A cap is 100,000 points a year, and the balance is 100,000 points. What do you tell me?"
+    must:
+      - Flags that this card cannot cover the points needed because of the cap
+      - Does not suggest splitting the transfer across cards unless a second card's ratio and cap are in the data
+      - Does not transfer points

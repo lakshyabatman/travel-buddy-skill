@@ -9,3 +9,8 @@
 - Programmes that are not listed have no confirmed template. Send the user to that programme's own site.
 
 `python awards.py aeroplan LIS GRU 2026-12-10 --adults 2` prints a link and the 30-second checklist.
+
+`charts.yaml` lists a programme only when an official published chart URL was identified.
+JAL's own international chart is there, unverified from this environment (jal.co.jp returned
+403). A JAL partner chart was not confirmed and is omitted. No extra airline fee files were
+added in that pass: a fee file needs an official fee page that was opened and cited.

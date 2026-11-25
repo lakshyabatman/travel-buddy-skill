@@ -22,7 +22,8 @@ passport numbers, or API keys. Nationality, the card product, and the point bala
 enough. If a site is behind a login, ask the user to read the figure there. The local log
 `~/.flight-points-optimiser/history.jsonl` and the watch file
 `~/.flight-points-optimiser/watch-ORIGIN-DEST-DATE.json` are mode 0600 and store only the
-route, dates, cabin, passenger counts, currency, price, source, and timestamp.
+route, dates, cabin, passenger counts, currency, price, source, and timestamp. An existing
+file in that directory is changed to 0600 the next time history or watch writes it.
 
 `search.py`, `history.py`, and `watch.py` are an optional unofficial scraper. They will break.
 The skill works with a built-in flight search or a browser (Google Flights, Skyscanner, Kayak,
@@ -83,7 +84,13 @@ Ask once, in one message, for anything missing. Defaults only where noted.
 
 1. Built-in flight search, then a browser: Google Flights date grid and price graph, Skyscanner
    month view, Kayak, the airline site. `python search.py ORIG DEST DATE --currency XXX --flex N`
-   is optional. `--flex` is 0–7 and shifts the return with the departure.
+   is optional. `--flex` is 0–7 and shifts the return with the departure. `--origin-airports`
+   and `--dest-airports` search several airports and merge them. If an airport code returns
+   nothing usable, retry its metro city code (HND → TYO, LHR → LON, JFK → NYC, CDG → PAR)
+   and say so. A round trip shows the return leg when it was actually fetched; otherwise the
+   row says **return not fetched**. Elapsed time is flying plus layovers, and the longest
+   layover is named. Fare brand and bags are shown only when the source has them; otherwise
+   **unknown**.
 2. Scan the flexibility they chose. For a month, weekends only, or anything wider than a week,
    read a date grid first and fully price only the named date plus a few cheap samples (about
    7–10 queries per origin, not every day).
@@ -102,11 +109,14 @@ bundled brand when the bundle is cheaper. Compare points with that true total, n
 
 ### Visas
 
-For every layover and the destination: airside transit without a visa, a transit visa, whether
-a self-transfer needs an entry visa, and destination entry (visa, eTA, ESTA, ETIAS, ETA, or
-similar; passport validity; onward ticket). Flag **OK**, **needs X**, or **check**. Drop or
-demote an option that needs a visa they cannot realistically get, and say why. Do not drop a
-**check** row; put it below confirmed ones.
+Check every airport in the itinerary, not only the destination: the origin, every transit
+hub, and the destination. For each hub, say whether airside transit is enough, a transit visa
+is required, or a self-transfer needs an entry visa, plus destination entry (visa, eTA, ESTA,
+ETIAS, ETA, or similar; passport validity; onward ticket). Flag **OK**, **needs X**, or
+**check**. If you are not sure, write **check official source** and link the country's
+immigration page or https://www.iatatravelcentre.com/. Do not guess. Drop or demote an option
+that needs a visa they cannot realistically get, and say why. Do not drop a **check** row;
+put it below confirmed ones.
 
 ### Points
 
@@ -115,7 +125,11 @@ about 60 days, or `verified` is false, re-read the issuer's page and label the f
 unverified. Do not copy another country's programme.
 
 `points_needed = ceil(award_miles × a / b)` for ratio `a:b`, rounded to that bank's increment.
-Value per point uses the true cash total minus award taxes. Say if the comparison is incomplete.
+Compare `points_needed` with that card's balance and with its annual cap and the partner's
+group cap. If one card cannot cover it, say so. Suggest a split across cards only when each
+card's ratio and cap are in the data and the amounts you can actually move add up. Do not
+invent a second card. Value per point uses the true cash total minus award taxes. Say if the
+comparison is incomplete.
 
 ### Award check
 
@@ -140,26 +154,38 @@ Sample numbers in `docs/example.json` are fiction. Do not copy them.
 **1. Best picks.** Up to three lines. Use a label only when an option earns it:
 
 - **Cheapest:** lowest true total that is allowed to be a pick.
-- **Best trip:** fastest or fewest stops when the extra cost is small.
+- **Best trip:** among allowed cash options whose true total is within **15%** of the cheapest
+  allowed cash true total, the shortest door-to-door time (flying plus layovers). Tie-break:
+  fewest stops, then the lower true total. An unaccepted self-transfer is not eligible. Points
+  rows are not eligible.
 - **Best points value (check seat):** only if points were compared and a transfer may beat
   cash. No points asked means no points pick. Never claim a seat you did not see.
 
 Fewer than three is fine. Other dates are not picks when the user said **fixed**. A split
 ticket is not **Cheapest** unless they accepted a self-transfer.
 
-**2. All options.** One table, sorted by cash still to pay (award taxes for a points row).
-Cash, points, other dates, other airports, split tickets, and other cabins go here, each
-tagged in the Option cell (`cash`, `points`, `other date`, `other airport`, `split ticket`,
-`other cabin`). Six columns only:
+**2. All options.** One table. Sort cash rows by true total. List points rows after the cash
+rows; do not rank them by award taxes as if those taxes were the cash fare. Cash, points,
+other dates, other airports, split tickets, and other cabins go here, each tagged in the
+Option cell (`cash`, `points`, `other date`, `other airport`, `split ticket`, `other cabin`).
 
-| Option | Pay with | True total | vs cheapest | Trip (time, stops) | Catch |
-|---|---|---|---|---|---|
+| Option | Pay with | True total | vs cheapest | Out / Back | Trip | Catch |
+|---|---|---|---|---|---|---|
+
+**Out / Back** names the airline, flight number when the source has it, depart and arrive
+times, stops, and the longest layover. A missing flight number, fare brand, or bag allowance
+is **unknown**. On a round trip, Back is the return leg. If that leg was not fetched, Back
+says **return not fetched**. Do not invent it. **Trip** shows both durations, for example
+`out 20h00 (1 stop) / back 13h10` or `out 20h00 / back return not fetched`. Door-to-door time
+includes layovers.
 
 Every number ends with a source ref `[n]`. Mark unverified figures **(unverified)**. Cap at
-10 rows, then `…and N more`. Quick mode caps at 5. **vs cheapest** is against the lowest true
-total in the table, including rows that are not picks. A split ticket's Catch says
-**unprotected self-transfer**, plus the visa note. If no other date was cheaper, one sentence
-under the table says so. Mention better award space on a nearby date only if you checked it.
+10 rows, then `…and N more`. Quick mode caps at 5. **vs cheapest** for a cash row is its true
+total minus the cheapest allowed cash true total. A points row shows **—** and the note
+**points, not cash**. A points row does not set that baseline. A split ticket's Catch says
+**unprotected self-transfer**, plus the visa note for every hub. If no other date was cheaper,
+one sentence under the table says so. Mention better award space on a nearby date only if
+you checked it.
 
 **3. Next steps** (full mode only), for the picks: where to book a cash fare, or for points
 the link from `awards/links.yaml`, the amount, the wait, and "I will not transfer or book
@@ -192,7 +218,9 @@ Never book.
 - [ ] Quick mode stayed within one question and about 5 searches, or full mode was requested
 - [ ] Flexibility was asked, or the ±3 day default was stated because you could not ask
 - [ ] True totals show fee lines or say unknown; basic fares that hide fees are flagged
-- [ ] Visa flag is OK, needs X, or check, with a source when it is not check
+- [ ] Every transit hub and the destination is OK, needs X, or check official source, with a link when it is not a confirmed OK
+- [ ] Round-trip rows show Out and Back, or return not fetched; Trip shows both durations; elapsed time includes layovers
+- [ ] Points rows show — under vs cheapest; a cap the card cannot cover is flagged, and a split is suggested only when the data supports it
 - [ ] Points use a card file or live research, and award space is "not checked" unless seen
 - [ ] Fare answers start with Best picks (only labels that were earned), then one options table
 - [ ] Other dates are inside that table; if none were cheaper, one sentence says so. Fixed dates are never a pick
