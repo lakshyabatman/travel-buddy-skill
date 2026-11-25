@@ -21,9 +21,11 @@ watch-state.json
 .claude/skills/flight-points-optimiser/requirements.txt
 .claude/skills/flight-points-optimiser/prompts/
 .claude/skills/flight-points-optimiser/fees/
+.claude/skills/flight-points-optimiser/awards/
 .cursor/skills/flight-points-optimiser/SKILL.md
 .cursor/skills/flight-points-optimiser/cards/
 .cursor/skills/flight-points-optimiser/search.py
 .cursor/skills/flight-points-optimiser/requirements.txt
 .cursor/skills/flight-points-optimiser/prompts/
 .cursor/skills/flight-points-optimiser/fees/
+.cursor/skills/flight-points-optimiser/awards/

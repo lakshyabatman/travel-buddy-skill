@@ -1,0 +1,74 @@
+# Award-search links. A template is not availability.
+# Placeholders: {origin} {destination} {depart} {adults}
+# Dates are YYYY-MM-DD. IATA codes are uppercase.
+# verified true means the URL shape was opened from this environment on last_checked.
+# verified false means the shape was not re-fetched here. Do not claim the seat exists.
+schema_version: 1
+last_checked: "2026-11-25"
+checklist:
+  - Open the link and confirm it is the award (miles) search, not a cash fare.
+  - Look for saver or the cheapest award bucket, not only a standard or flex award.
+  - Read the taxes and carrier surcharges in cash, not just the mileage price.
+  - Check the cabin on every segment. A mixed-cabin trip is not the cabin you asked for unless you accept it.
+  - If the site asks you to log in before showing space, the seat was not checked.
+programmes:
+  - id: aeroplan
+    name: Air Canada Aeroplan
+    supports_prefill: true
+    round_trip_prefill: false
+    template: "https://www.aircanada.com/aeroplan/redeem/availability/outbound?tripType=O&org0={origin}&dest0={destination}&departureDate0={depart}&ADT={adults}&YTH=0&CHD=0&INF=0&INS=0&lang=en-CA"
+    search_url: "https://www.aircanada.com/aeroplan/redeem/availability/outbound"
+    cabin_in_url: false
+    login_required_to_open: false
+    limits: "One-way only. Cabin is chosen on the page, not in the URL. A 200 response does not mean a seat is available. Return trips need a second search."
+    source_url: "https://www.aircanada.com/aeroplan/redeem/availability/outbound?tripType=O&org0=YUL&dest0=LHR&departureDate0=2026-12-16&ADT=1&YTH=0&CHD=0&INF=0&INS=0&lang=en-CA"
+    last_checked: "2026-11-25"
+    verified: true
+  - id: krisflyer
+    name: Singapore Airlines KrisFlyer
+    supports_prefill: false
+    round_trip_prefill: false
+    template: null
+    search_url: "https://www.singaporeair.com/en_UK/us/ppsclub-krisflyer/krisflyer/redeem-miles/"
+    cabin_in_url: false
+    login_required_to_open: unknown
+    limits: "No public query parameters were confirmed. The user types the route, dates, cabin, and passengers. Award space often requires a KrisFlyer login."
+    source_url: "https://www.singaporeair.com/en_UK/us/ppsclub-krisflyer/krisflyer/redeem-miles/"
+    last_checked: "2026-11-25"
+    verified: true
+  - id: british_airways
+    name: British Airways Club
+    supports_prefill: false
+    round_trip_prefill: false
+    template: null
+    search_url: "https://www.britishairways.com/travel/redeem/public/en_gb"
+    cabin_in_url: false
+    login_required_to_open: unknown
+    limits: "Redeem page opens. Route, dates, cabin, and passengers are not in a confirmed query string. Avios balances and some space need a login."
+    source_url: "https://www.britishairways.com/travel/redeem/public/en_gb"
+    last_checked: "2026-11-25"
+    verified: true
+  - id: cathay
+    name: Cathay Asia Miles
+    supports_prefill: false
+    round_trip_prefill: false
+    template: null
+    search_url: "https://www.cathaypacific.com/cx/en_HK/book-a-trip/redeem-flights/redeem-flight-awards.html"
+    cabin_in_url: false
+    login_required_to_open: unknown
+    limits: "Awards page opens. No prefilled route was confirmed. The user enters the search."
+    source_url: "https://www.cathaypacific.com/cx/en_HK/book-a-trip/redeem-flights/redeem-flight-awards.html"
+    last_checked: "2026-11-25"
+    verified: true
+  - id: united
+    name: United MileagePlus
+    supports_prefill: true
+    round_trip_prefill: false
+    template: "https://www.united.com/en/us/fsr/choose-flights?f={origin}&t={destination}&d={depart}&px={adults}&sc=7"
+    search_url: "https://www.united.com/en/us/fly/mileageplus/air-awards.html"
+    cabin_in_url: false
+    login_required_to_open: unknown
+    limits: "Origin, destination, date, and passenger count appear on united.com results URLs (f, t, d, px). This environment could not re-fetch United on 2026-11-25. Miles mode is a toggle on the page, not a confirmed query parameter. Switch to Miles and do not treat the URL as proof of space."
+    source_url: "https://www.united.com/en/us/fsr/choose-flights?f=SNA&t=LAS&d=2023-03-10&px=1&sc=7"
+    last_checked: "2026-11-25"
+    verified: false

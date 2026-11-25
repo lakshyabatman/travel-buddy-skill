@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILL_NAME="flight-points-optimiser"
 # Files the running skill needs. SKILL.md is the source of truth.
-ITEMS=(SKILL.md search.py history.py watch.py requirements.txt cards fees prompts)
+ITEMS=(SKILL.md search.py history.py watch.py awards.py requirements.txt cards fees awards prompts)
 
 usage() {
   cat <<USAGE
