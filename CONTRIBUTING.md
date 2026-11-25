@@ -64,8 +64,21 @@ Please contribute these as separate PRs, official sources only:
 - **Australia**
 
 India (`cards/india.yaml`) is the v1 file. It includes Magnus, Magnus for Burgundy, and
-IDFC FIRST Mayura alongside the earlier cards. A backlog of other Indian cards sits as a
-comment at the bottom of that file.
+IDFC FIRST Mayura alongside the earlier cards.
+
+## Next Indian batch (not researched yet)
+
+Official issuer pages only. Do not copy a blog, and do not mark `verified: true` until you have
+read the ratio on that page. If a card has no airline transfer programme, say so and leave
+`partners` empty.
+
+- **IDFC FIRST:** Wealth and Ashva. Mayura is already in the file and does not transfer.
+- **ICICI:** Emeralde and Sapphiro.
+- **Axis:** Reserve, Olympus, and Burgundy Private are other columns of the Travel EDGE table.
+  Magnus and Magnus for Burgundy are already in the file.
+
+A weekly workflow (`.github/workflows/card-freshness.yml`) opens or updates an issue listing
+stale and unverified entries. It only has permission to read the repo and write issues.
 
 ## Airline fee snapshots
 
