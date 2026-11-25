@@ -39,7 +39,9 @@ def coverage_html() -> str:
             checked = card.get("last_checked") or table_checked
             ver = "yes" if card.get("verified") else "no"
             notes = []
-            if u and v:
+            if n == 0:
+                notes.append("no airline or hotel transfer partners")
+            elif u and v:
                 notes.append(f"{v} of {n} partner ratios verified")
             elif n and not v:
                 notes.append("partner ratios unverified")

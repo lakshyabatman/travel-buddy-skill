@@ -202,6 +202,119 @@ programs:
       - {name: Emirates Skywards, removed: "2025-05-27 (per blog)", source_url: "https://getbrief.cards/amex-transfer-partners"}
     fees: {value: null, note: "No transfer fee found in official or blog sources (unverified)."}
 
+  axis_edge_rewards_magnus:
+    issuer: Axis Bank
+    currency_name: EDGE Reward Points
+    transfer_portal: "Axis Mobile app or https://traveledge.axis.bank.in > Points/Miles Transfer"
+    min_transfer: "300 EDGE Reward Points (https://www.axis.bank.in/miles-transfer)"
+    reversible: false
+    general_sources:
+      - https://traveledge.axis.bank.in/travel/common/termsandcondition
+      - https://www.axis.bank.in/miles-transfer
+      - https://www.axisbank.com/mitnc
+    groups_note: >-
+      Official Group A / Group B list on the Travel EDGE terms page, read 2026-11-25.
+      Annual caps are shared across every partner in a group. This currency is EDGE
+      Reward Points, a different balance from EDGE Miles (Atlas).
+    ratio_column: "Reserve, Magnus Credit Cards"
+    partners:
+      - {name: Accor Live Limitless (ALL), group: A, type: hotel, ratio: "5:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Reserve/Magnus column. Magnus for Burgundy is 5:2 for this partner."}
+      - {name: AirAsia rewards, group: B, type: airline, ratio: "5:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Air Canada Aeroplan, group: A, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air France-KLM Flying Blue, group: A, type: airline, alliance: SkyTeam, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air India Maharaja Club, group: A, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25}
+      - {name: British Airways Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "5:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Reserve/Magnus column. Magnus for Burgundy is 5:2 for this partner."}
+      - {name: Cathay Asia Miles, group: A, type: airline, alliance: oneworld, ratio: "5:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Reserve/Magnus column. Magnus for Burgundy is 5:2 for this partner."}
+      - {name: Ethiopian ShebaMiles, group: A, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Etihad Guest, group: A, type: airline, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Finnair Plus (Avios), group: A, type: airline, alliance: oneworld, ratio: "5:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Reserve/Magnus column. Magnus for Burgundy is 5:2 for this partner."}
+      - {name: Hilton Honors, group: B, type: hotel, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: IHG One Rewards, group: B, type: hotel, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: IndiGo BluChip, group: B, type: airline, ratio: "5:1", transfer_time: "up to 1-2 working days", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Reserve/Magnus column. Magnus for Burgundy is 5:2 for this partner."}
+      - {name: JAL Mileage Bank, group: A, type: airline, alliance: oneworld, ratio: "5:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Lufthansa Group Miles & More, group: B, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Orchid Rewards, group: B, type: hotel, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: The Postcard Sunshine Club, group: B, type: hotel, ratio: "5:2", transfer_time: "up to 2 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Qantas Frequent Flyer, group: A, type: airline, alliance: oneworld, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Qatar Airways Privilege Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "5:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Reserve/Magnus column. Magnus for Burgundy is 5:2 for this partner."}
+      - {name: Radisson Rewards, group: B, type: hotel, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Singapore Airlines KrisFlyer, group: A, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: SpiceJet SpiceClub, group: B, type: airline, ratio: "5:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Thai Airways Royal Orchid Plus, group: A, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Turkish Airlines Miles&Smiles, group: A, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: United MileagePlus, group: A, type: airline, alliance: Star Alliance, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Vietnam Airlines Lotusmiles, group: A, type: airline, alliance: SkyTeam, ratio: "5:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Reserve/Magnus column. Magnus for Burgundy is 5:2 for this partner."}
+      - {name: Wyndham Rewards, group: A, type: hotel, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+    partners_source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+    removed_partners:
+      - {name: Marriott Bonvoy, removed: "not in the live table on 2026-11-25", notes: "Present only inside an HTML comment on the official terms page."}
+
+  axis_edge_rewards_magnus_burgundy:
+    issuer: Axis Bank
+    currency_name: EDGE Reward Points
+    transfer_portal: "Axis Mobile app or https://traveledge.axis.bank.in > Points/Miles Transfer"
+    min_transfer: "300 EDGE Reward Points (https://www.axis.bank.in/miles-transfer)"
+    reversible: false
+    general_sources:
+      - https://traveledge.axis.bank.in/travel/common/termsandcondition
+      - https://www.axis.bank.in/miles-transfer
+      - https://www.axisbank.com/mitnc
+    groups_note: >-
+      Official Group A / Group B list on the Travel EDGE terms page, read 2026-11-25.
+      Annual caps are shared across every partner in a group. This currency is EDGE
+      Reward Points, a different balance from EDGE Miles (Atlas).
+    ratio_column: "Magnus for Burgundy Credit Card"
+    partners:
+      - {name: Accor Live Limitless (ALL), group: A, type: hotel, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Magnus for Burgundy column. The non-Burgundy Magnus column is 5:1 for this partner."}
+      - {name: AirAsia rewards, group: B, type: airline, ratio: "5:4", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Air Canada Aeroplan, group: A, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air France-KLM Flying Blue, group: A, type: airline, alliance: SkyTeam, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air India Maharaja Club, group: A, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25}
+      - {name: British Airways Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Magnus for Burgundy column. The non-Burgundy Magnus column is 5:1 for this partner."}
+      - {name: Cathay Asia Miles, group: A, type: airline, alliance: oneworld, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Magnus for Burgundy column. The non-Burgundy Magnus column is 5:1 for this partner."}
+      - {name: Ethiopian ShebaMiles, group: A, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Etihad Guest, group: A, type: airline, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Finnair Plus (Avios), group: A, type: airline, alliance: oneworld, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Magnus for Burgundy column. The non-Burgundy Magnus column is 5:1 for this partner."}
+      - {name: Hilton Honors, group: B, type: hotel, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: IHG One Rewards, group: B, type: hotel, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: IndiGo BluChip, group: B, type: airline, ratio: "5:2", transfer_time: "up to 1-2 working days", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Magnus for Burgundy column. The non-Burgundy Magnus column is 5:1 for this partner."}
+      - {name: JAL Mileage Bank, group: A, type: airline, alliance: oneworld, ratio: "5:4", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Lufthansa Group Miles & More, group: B, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Orchid Rewards, group: B, type: hotel, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: The Postcard Sunshine Club, group: B, type: hotel, ratio: "5:4", transfer_time: "up to 2 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Qantas Frequent Flyer, group: A, type: airline, alliance: oneworld, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Qatar Airways Privilege Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Magnus for Burgundy column. The non-Burgundy Magnus column is 5:1 for this partner."}
+      - {name: Radisson Rewards, group: B, type: hotel, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Singapore Airlines KrisFlyer, group: A, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: SpiceJet SpiceClub, group: B, type: airline, ratio: "5:4", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Thai Airways Royal Orchid Plus, group: A, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Turkish Airlines Miles&Smiles, group: A, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: United MileagePlus, group: A, type: airline, alliance: Star Alliance, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Vietnam Airlines Lotusmiles, group: A, type: airline, alliance: SkyTeam, ratio: "5:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25, notes: "Reduced ratio on the Magnus for Burgundy column. The non-Burgundy Magnus column is 5:1 for this partner."}
+      - {name: Wyndham Rewards, group: A, type: hotel, ratio: "5:4", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+    partners_source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+    removed_partners:
+      - {name: Marriott Bonvoy, removed: "not in the live table on 2026-11-25", notes: "Present only inside an HTML comment on the official terms page."}
+
+
+  idfc_mayura_reward_points:
+    issuer: IDFC FIRST Bank
+    currency_name: Reward Points
+    transfer_portal: "No airline or hotel transfer. Redeem only in the IDFC FIRST Bank mobile app, Travel & Shop / FIRST Rewards Gallery."
+    airline_transfers: false
+    reversible: false
+    general_sources:
+      - https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Mayura-CC-Rewards-Structure-TnC-28-05-25.pdf
+      - https://www.idfcfirst.bank.in/finfirst-blogs/credit-card/credit-card-rewards-for-travel-perks
+      - https://www.idfcfirst.bank.in/credit-card/metal-credit-card/mayura
+    portal_note: >-
+      Official bank FAQ (4 Nov 2025, still the page on 2026-11-25): "Are reward points transferable
+      to other cards or programs? No, reward points earned on your Mayura Credit Card are
+      non-transferable." The rewards T&C PDF describes only in-app redemption. No airline or hotel
+      partner, ratio, or transfer time is published, so none is listed.
+    partners: []
+    fees: {value: null, note: "No points-transfer fee, because the official pages describe no transfer programme."}
+
 cards:
 
   - id: hdfc_infinia
@@ -276,15 +389,78 @@ cards:
     last_checked: 2026-11-25
     verified: false
 
+
+  - id: axis_magnus
+    name: Axis Bank Magnus
+    program: axis_edge_rewards_magnus
+    ratio_note: >-
+      Ratios are the official "Reserve, Magnus Credit Cards" column, not the Magnus for Burgundy
+      column and not EDGE Miles. Magnus for Burgundy is a separate card entry.
+    caps:
+      annual_total: "5,00,000 EDGE Reward Points per customer ID per calendar year"
+      annual_group_a: "1,00,000 EDGE Reward Points (shared by all Group A partners)"
+      annual_group_b: "4,00,000 EDGE Reward Points (shared by all Group B partners)"
+      verified: true
+    fees:
+      value: "INR 199 per transfer to a partner programme"
+      note: "MITC 'EDGE MILES Points Redemption Fee' applies to conversion of EDGE points or miles. Magnus is not on the waiver list."
+      verified: true
+      source_url: https://www.axisbank.com/mitnc
+    notes: >-
+      Distinct from Magnus for Burgundy (better ratios, higher cap) and from Burgundy Private.
+      The official column header also names Reserve; this entry is only the Magnus product.
+      Marriott Bonvoy is commented out on the source page and is not a partner here.
+    source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+    last_checked: 2026-11-25
+    verified: true
+
+  - id: axis_magnus_for_burgundy
+    name: Axis Bank Magnus for Burgundy
+    program: axis_edge_rewards_magnus_burgundy
+    ratio_note: "Official 'Magnus for Burgundy Credit Card' column. Not the same ratios as non-Burgundy Magnus."
+    caps:
+      annual_total: "10,00,000 EDGE Reward Points per customer ID per calendar year"
+      annual_group_a: "2,00,000 EDGE Reward Points (shared by all Group A partners)"
+      annual_group_b: "8,00,000 EDGE Reward Points (shared by all Group B partners)"
+      verified: true
+    fees:
+      value: "INR 199 per transfer to a partner programme"
+      note: "Same MITC transfer fee. Magnus for Burgundy is not on the waiver list (Burgundy Private is waived; this variant is not)."
+      verified: true
+      source_url: https://www.axisbank.com/mitnc
+    notes: "A Burgundy relationship variant of Magnus, not Burgundy Private and not the standard Magnus card."
+    source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+    last_checked: 2026-11-25
+    verified: true
+
+  - id: idfc_first_mayura
+    name: IDFC FIRST Bank Mayura
+    program: idfc_mayura_reward_points
+    caps:
+      monthly_travel_redemption: "1,50,000 Reward Points per calendar month on app flight and hotel bookings"
+      annual_travel_redemption: "3,00,000 Reward Points per calendar year on those bookings"
+      booking_share: "Points can pay up to 70% of the booking value; the rest is paid on the Mayura card"
+      verified: true
+    fees:
+      value: null
+      note: "No transfer fee is stated because there is no transfer programme. A per-redemption fee was not on the official rewards PDF read on 2026-11-25."
+    alt_redemption: "1 Reward Point = INR 0.50 on flights and hotels booked in the bank app; INR 0.25 on other redemptions."
+    notes: >-
+      Mayura Reward Points do not transfer to any airline or hotel programme. Do not invent partners.
+      Redeem only in the IDFC FIRST Bank app. Points do not expire (official FAQ).
+    source_url: https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/pdf/Mayura-CC-Rewards-Structure-TnC-28-05-25.pdf
+    last_checked: 2026-11-25
+    verified: true
+
 # ---------------------------------------------------------------------------
-# BACKLOG (not covered in v1; contributions welcome - see CONTRIBUTING.md)
-# - Axis Magnus / Reserve / Olympus / Burgundy Private (EDGE Reward Points / EDGE Miles; same Axis
-#   table, different columns - e.g. Reserve/Magnus are 5:2 standard and 5:1 reduced on 2026-11-25)
-# - ICICI Emeralde Private Metal
+# BACKLOG (not in this file yet; contributions welcome - see CONTRIBUTING.md)
+# - Axis Reserve, Olympus, Burgundy Private (other columns of the same Travel EDGE table)
+# - ICICI Emeralde / Sapphiro
+# - IDFC FIRST Wealth / Ashva
 # - SBI Card Elite / Aurum / Miles
 # - HSBC Premier / TravelOne
 # - AU Small Finance Bank Zenith+
 # - Standard Chartered (Ultimate / Beyond)
 # - HDFC Regalia Gold, Biz Black
-# - Kotak (White Reserve / Solitaire), IDFC First (Mayura / Ashva), Yes Bank Marquee
+# - Kotak (White Reserve / Solitaire), Yes Bank Marquee
 # ---------------------------------------------------------------------------

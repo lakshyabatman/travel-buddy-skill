@@ -63,9 +63,9 @@ Please contribute these as separate PRs, official sources only:
 - **Canada**
 - **Australia**
 
-India (`cards/india.yaml`) is the v1 file. A backlog of additional *Indian* cards (Axis Magnus /
-Reserve / Olympus, ICICI, SBI, HSBC, AU, Standard Chartered, and others) sits as a comment at
-the bottom of that file.
+India (`cards/india.yaml`) is the v1 file. It includes Magnus, Magnus for Burgundy, and
+IDFC FIRST Mayura alongside the earlier cards. A backlog of other Indian cards sits as a
+comment at the bottom of that file.
 
 ## Airline fee snapshots
 
