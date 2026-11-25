@@ -16,7 +16,12 @@ STALE_DAYS = 60
 
 
 class DateAsStringLoader(yaml.SafeLoader):
-    pass
+    def ignore_aliases(self, _data):
+        return True
+
+
+def one_line(value) -> str:
+    return " ".join(str(value).replace("`", "'").split())[:200]
 
 
 for _ch, _resolvers in list(DateAsStringLoader.yaml_implicit_resolvers.items()):
@@ -40,7 +45,7 @@ def age(raw):
 def main():
     stale = []
     unverified = []
-    for path in sorted((ROOT / "cards").glob("*.yaml")):
+    for path in sorted(p for p in (ROOT / "cards").glob("*.yaml") if not p.is_symlink()):
         doc = load(path)
         rel = path.relative_to(ROOT).as_posix()
         if not isinstance(doc, dict):
@@ -48,23 +53,23 @@ def main():
         if doc.get("table_last_checked"):
             days = age(doc["table_last_checked"])
             if days is not None and days > STALE_DAYS:
-                stale.append(f"- `{rel}` table_last_checked {doc['table_last_checked']} ({days} days)")
+                stale.append(f"- `{rel}` table_last_checked {one_line(doc['table_last_checked'])} ({days} days)")
         for pid, prog in (doc.get("programs") or {}).items():
             for partner in prog.get("partners") or []:
-                label = f"{rel} {pid} / {partner.get('name')}"
+                label = one_line(f"{rel} {pid} / {partner.get('name')}")
                 days = age(partner.get("last_checked"))
                 if days is not None and days > STALE_DAYS:
                     stale.append(f"- {label}: last_checked {partner.get('last_checked')} ({days} days)")
                 if partner.get("verified") is False:
-                    unverified.append(f"- {label}: unverified ({partner.get('source_url') or 'no source'})")
+                    unverified.append(f"- {label}: unverified ({one_line(partner.get('source_url') or 'no source')})")
         for card in doc.get("cards") or []:
-            label = f"{rel} card {card.get('id')}"
+            label = one_line(f"{rel} card {card.get('id')}")
             days = age(card.get("last_checked"))
             if days is not None and days > STALE_DAYS:
                 stale.append(f"- {label}: last_checked {card.get('last_checked')} ({days} days)")
             if card.get("verified") is False:
-                unverified.append(f"- {label}: unverified ({card.get('source_url') or 'no source'})")
-    for path in sorted((ROOT / "fees").glob("*.yaml")):
+                unverified.append(f"- {label}: unverified ({one_line(card.get('source_url') or 'no source')})")
+    for path in sorted(p for p in (ROOT / "fees").glob("*.yaml") if not p.is_symlink()):
         doc = load(path)
         if not isinstance(doc, dict):
             continue
@@ -75,6 +80,7 @@ def main():
         if doc.get("verified") is False:
             unverified.append(f"- `{rel}`: unverified")
 
+    print("status: clean" if not stale and not unverified else "status: findings")
     print(f"Card and fee freshness report, {date.today().isoformat()}.")
     print()
     print("Stale means `last_checked` is more than 60 days old. Unverified means `verified: false`.")

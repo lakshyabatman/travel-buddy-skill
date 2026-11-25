@@ -97,3 +97,9 @@ option; do not fake currency conversion in the script.
 The GitHub Pages site is the static file `docs/index.html` (no site generator). After card
 edits, run `python scripts/build_docs.py` so the coverage table stays in sync. CI can run
 `python scripts/build_docs.py --check`.
+
+## Security
+
+Report vulnerabilities privately. See [SECURITY.md](SECURITY.md). Dependency versions in
+`requirements.txt` are exact. Dependabot opens weekly update PRs for pip and GitHub Actions.
+Review bumps of `fast-flights` and `primp` before merging: they are an unofficial scraper.
