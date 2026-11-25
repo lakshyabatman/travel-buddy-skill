@@ -93,11 +93,13 @@ Notes:
 - `fast-flights` is an unofficial scraper. It was tested working on 2026-11-25 (v3.1.0) on
   LHR–JFK and SIN–SYD. Those were test routes, not preferred origins. It can break or be
   rate-limited at any time. If it fails, use Google Flights, Skyscanner or Kayak in a browser.
-- A round trip prints the outbound leg and the return leg. If the return was not in the
-  result, the row says `return not fetched` instead of guessing. Elapsed time includes
-  layovers. An airport code with no usable result is retried as its metro city code
-  (`HND` → `TYO`). `--origin-airports` and `--dest-airports` search several airports and merge
-  them. Still cross-check a round trip in a browser.
+- A round trip fetches the return for the top few outbound options (`--return-picks`,
+  default 3, max 5). The price is the round-trip total from that second search. If the
+  return cannot be fetched, the row says `likely return flights (schedule only, not
+  price-linked)` or `return not fetched`. Elapsed time includes layovers. An airport code
+  with no usable result is retried as its metro city code (`HND` → `TYO`).
+  `--origin-airports` and `--dest-airports` search several airports and merge them. Still
+  cross-check a round trip in a browser.
 - `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × airports small.
 
 `search.py` is an optional, unofficial scraper. The skill works without it. When a search

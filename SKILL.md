@@ -87,10 +87,12 @@ Ask once, in one message, for anything missing. Defaults only where noted.
    is optional. `--flex` is 0–7 and shifts the return with the departure. `--origin-airports`
    and `--dest-airports` search several airports and merge them. If an airport code returns
    nothing usable, retry its metro city code (HND → TYO, LHR → LON, JFK → NYC, CDG → PAR)
-   and say so. A round trip shows the return leg when it was actually fetched; otherwise the
-   row says **return not fetched**. Elapsed time is flying plus layovers, and the longest
-   layover is named. Fare brand and bags are shown only when the source has them; otherwise
-   **unknown**.
+   and say so. A round trip prices the return with a second search for the top few outbound
+   flights (carrier and flight number included). The price on that row is the round-trip
+   total. If that second search fails, Back says **likely return flights (schedule only,
+   not price-linked)** or **return not fetched**. Do not invent the return. Elapsed time is
+   flying plus layovers, and the longest layover is named. Fare brand and bags are shown
+   only when the source has them; otherwise **unknown**.
 2. Scan the flexibility they chose. For a month, weekends only, or anything wider than a week,
    read a date grid first and fully price only the named date plus a few cheap samples (about
    7–10 queries per origin, not every day).
