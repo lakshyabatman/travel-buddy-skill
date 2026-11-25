@@ -1,0 +1,24 @@
+{
+  "label": "Fictional sample for the landing page. Not a real fare, a real trip, or award availability.",
+  "origin": "LIS",
+  "origin_city": "Lisbon",
+  "destination": "GRU",
+  "destination_city": "Sao Paulo",
+  "passengers": 2,
+  "depart": "2026-03-10",
+  "return": "2026-03-17",
+  "currency": "EUR",
+  "cash": {
+    "airline": "Airline XX",
+    "stops": 1,
+    "total": 520,
+    "note": "Example only. Bags included."
+  },
+  "points": {
+    "miles": 80000,
+    "taxes": 360,
+    "note": "Example only. Seat not checked."
+  },
+  "recommended": "cash",
+  "recommended_reason": "The cash fare, because the points seat was not checked."
+}

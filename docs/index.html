@@ -54,15 +54,49 @@
     table.example th, table.example td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); }
     .muted { color: var(--muted); }
     footer { padding: 12px 0 48px; color: var(--muted); font-size: .92rem; }
+    .pitch { font-size: 1.35rem; margin: 0 0 16px; }
+    .benefits { display: grid; gap: 10px; margin: 0 0 18px; padding: 0; list-style: none; }
+    .benefits li { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+    .hero-grid { display: grid; gap: 16px; }
+    @media (min-width: 800px) { .hero-grid { grid-template-columns: 1.2fr .8fr; } }
+    .media-slot { border: 1px dashed var(--line); border-radius: 12px; min-height: 160px; display: grid; place-items: center; text-align: center; padding: 16px; color: var(--muted); background: repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(0,0,0,.03) 8px, rgba(0,0,0,.03) 16px); }
+    .pick { font-weight: 650; }
   </style>
 </head>
 <body>
   <header>
     <p class="eyebrow">Agent skill · MIT license</p>
     <h1>Flight Points Optimiser</h1>
-    <p class="lede">Find the cheapest way to fly from anywhere, paying cash or with transferable credit-card points and airline miles. No paid flight APIs. The skill never books or transfers points unless you say so.</p>
+    <p class="pitch">The cheapest way to fly, cash or points, without booking anything for you.</p>
+    <ul class="benefits">
+      <li><strong>Cash and points together.</strong> One ranking, from free sources, for any city pair.</li>
+      <li><strong>The real total.</strong> Bags and seats are added when they can be verified. Unknown fees stay unknown.</li>
+      <li><strong>You stay in control.</strong> Visa flags and award links are cited. The skill never pays or transfers points unless you say so.</li>
+    </ul>
+    <pre>git clone https://github.com/lakshyabatman/travel-buddy-skill.git && cd travel-buddy-skill && chmod +x scripts/install.sh && ./scripts/install.sh --claude-code</pre>
+    <p class="muted">One command for Claude Code. Use <code>--cursor</code> instead for Cursor. The skill also works by opening <code>SKILL.md</code> with no install.</p>
   </header>
   <main>
+    <section>
+      <h2>Example: Lisbon to São Paulo for 2</h2>
+      <p class="banner">Fictional sample. Not a real fare, a real booking, or a real award seat. Numbers live in <code>docs/example.json</code> so a genuine example can replace them later.</p>
+      <div class="hero-grid">
+        <div>
+          <p id="hero-route">LIS–GRU, 10–17 March, 2 adults, EUR. Airline names are placeholders.</p>
+          <table class="example" id="hero-table">
+            <thead><tr><th></th><th>Pay</th><th>Total</th><th>Note</th></tr></thead>
+            <tbody>
+              <tr><td>Cash</td><td>Airline XX</td><td>€520</td><td>Example only. Bags included. 1 stop.</td></tr>
+              <tr><td>Points</td><td>80,000 miles + €360 taxes</td><td>80k + €360</td><td>Example only. Seat not checked.</td></tr>
+            </tbody>
+          </table>
+          <p class="pick" id="hero-pick">Recommended pick: the cash fare, because the points seat was not checked.</p>
+        </div>
+        <div class="media-slot" role="img" aria-label="Placeholder for a demo animation">
+          <p>GIF or video placeholder.<br>Drop <code>docs/demo.gif</code> here when you have a recording. Nothing plays until that file exists.</p>
+        </div>
+      </div>
+    </section>
     <section>
       <h2>What it does</h2>
       <ul>
@@ -203,6 +237,15 @@ chmod +x scripts/install.sh</pre>
       <p>Transfer ratios, partners, caps and fees change often, sometimes overnight. Entries marked unverified come from blogs, or from official pages that are old or behind a login. Confirm the ratio in your bank’s transfer portal, and confirm award space on the airline programme’s site, before transferring. This project is not affiliated with any bank, airline or loyalty programme, and nothing here is financial advice.</p>
     </section>
   </main>
+  <script>
+    fetch("example.json").then(function (r) { return r.json(); }).then(function (ex) {
+      var route = document.getElementById("hero-route");
+      var pick = document.getElementById("hero-pick");
+      if (!route || !ex || !ex.cash) return;
+      route.textContent = ex.origin + "–" + ex.destination + ", " + ex.depart + " to " + ex.return + ", " + ex.passengers + " adults, " + ex.currency + ". " + ex.label;
+      pick.textContent = "Recommended pick: " + ex.recommended_reason;
+    }).catch(function () {});
+  </script>
   <footer>
     <p>MIT License · Copyright © 2026 Lakshya · <code>SKILL.md</code> is the source of truth. · <a href="https://github.com/lakshyabatman/travel-buddy-skill">github.com/lakshyabatman/travel-buddy-skill</a></p>
   </footer>
