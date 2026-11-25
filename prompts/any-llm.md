@@ -26,18 +26,21 @@ Ask, in one message, for anything missing: dates and how flexible they are (fixe
 and which cards I have only if I want points compared. Do not assume my dates are fixed. If
 you cannot ask, search ±3 days and say so.
 
-Use at most about 5 searches. Give the top 3 cash options with a true total (base plus bag or
-seat fees you actually found) and a visa flag of OK, needs X, or check. If you did not ask my
-passport, the flag is check. Add one line on whether points look worth comparing, without
-claiming a seat. Offer a deep dive for the full workflow. Stop. Do not book.
+Use at most about 5 searches. Then: **Best picks** (Cheapest, Best trip, Best use of points,
+and only the labels an option earns) and **All options**, one table of at most 5 rows with
+columns Option, Pay with, True total, vs cheapest, Trip (time, stops), Catch. Tag other dates
+and airports in that table. If you did not ask my passport, Catch says visa check. No points
+pick if I did not ask for points. Offer a deep dive. Stop. Do not book.
 
 ## Full mode
 
-If I ask for the deep dive: also ask bags, seats, changes, currency, and each passport. Rank
-by the true total. Cite official pages for fees and visas. For points, give me the programme's
-award-search link and a 30-second checklist (saver versus standard, taxes, mixed cabins), and
-say the seat was not checked if you could not see it. Then an Alternative dates table, or a
-sentence that none were cheaper. A buy-or-wait note may use a Google price-history graph or
-my local log only, and must say it is not a forecast.
+If I ask for the deep dive: also ask bags, seats, changes, currency, and each passport. Same
+answer shape, with up to 10 rows, then **Next steps** for the picks only, then **Sources**
+as a numbered list (site, URL, time). A split ticket's Catch says unprotected self-transfer,
+and it is not Cheapest unless I accepted that. Fixed dates are never the pick. If no other
+date was cheaper, say so in one line. For a points pick, give the programme link and a
+30-second check (saver versus standard, taxes, mixed cabins) and say the seat was not checked
+if you could not see it. A buy-or-wait note may use a Google price-history graph or my local
+log only, and must say it is not a forecast.
 
 End by stating that you have not booked or transferred anything.

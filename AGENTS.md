@@ -12,9 +12,8 @@ unless they want a deep dive:
 
 - Ask only for missing dates and flexibility, passengers, and cards if they want points.
 - Exact dates only if they say fixed. If you cannot ask, use ±3 days and say so.
-- At most about 5 searches. Cash top 3 with a true total and a visa flag (check, if you did
-  not ask for a passport).
-- One line on whether points look plausible. Never claim a seat is free.
+- At most about 5 searches. Answer with Best picks and at most 5 rows of the one options table.
+- A points pick only if they asked and a transfer looks plausible. Never claim a seat is free.
 - Never book, pay, or transfer.
 
 `search.py`, `history.py`, and `watch.py` are an optional scraper. The skill works in a
@@ -22,9 +21,8 @@ browser or with a built-in flight search if they are missing or broken.
 
 ## Full mode
 
-When they ask for the deep dive, follow the rest of `SKILL.md`: fee lines, official visa
-sources, award links from `awards/links.yaml` plus a 30-second self-check, an Alternative
-dates table, and a buy-or-wait note that does not invent history. Do not invent fares, fees,
-ratios, or visa rules.
+When they ask for the deep dive, follow the rest of `SKILL.md`: Best picks, one options table
+(cash, points, other dates, airports, and split tickets together), next steps for the picks,
+and a numbered source list. Do not invent fares, fees, ratios, or visa rules.
 
 Supporting files: `cards/`, `fees/`, `awards/links.yaml`, `prompts/any-llm.md`.

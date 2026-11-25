@@ -1,5 +1,5 @@
 {
-  "label": "Fictional sample for the landing page. Not a real fare, a real trip, or award availability.",
+  "label": "Fictional sample. Not a real fare, a real trip, or award availability.",
   "origin": "LIS",
   "origin_city": "Lisbon",
   "destination": "GRU",
@@ -8,17 +8,63 @@
   "depart": "2026-03-10",
   "return": "2026-03-17",
   "currency": "EUR",
-  "cash": {
-    "airline": "Airline XX",
-    "stops": 1,
-    "total": 520,
-    "note": "Example only. Bags included."
-  },
-  "points": {
-    "miles": 80000,
-    "taxes": 360,
-    "note": "Example only. Seat not checked."
-  },
-  "recommended": "cash",
-  "recommended_reason": "The cash fare, because the points seat was not checked."
+  "flexibility": "example assumes the dates may move",
+  "picks": [
+    {
+      "label": "Cheapest",
+      "line": "Airline XX, 8–16 Mar, €449. One day longer and a red-eye, bag included."
+    },
+    {
+      "label": "Best trip",
+      "line": "Airline YY nonstop on 10–17 Mar, €612. About three hours faster."
+    },
+    {
+      "label": "Best use of points",
+      "line": "64,000 miles + €210 taxes on 10–17 Mar. Seat not checked."
+    }
+  ],
+  "rows": [
+    {
+      "option": "split ticket · airline ZZ, 10–17 Mar",
+      "pay_with": "Cash",
+      "true_total": "€390",
+      "vs_cheapest": "—",
+      "trip": "16h, 2 stops",
+      "catch": "Example only. unprotected self-transfer. Visa: check."
+    },
+    {
+      "option": "other date · airline XX, 8–16 Mar",
+      "pay_with": "Cash",
+      "true_total": "€449",
+      "vs_cheapest": "€59 more",
+      "trip": "13h, 1 stop",
+      "catch": "Example only. Red-eye. This is the Cheapest pick."
+    },
+    {
+      "option": "cash · airline XX, 10–17 Mar",
+      "pay_with": "Cash",
+      "true_total": "€505",
+      "vs_cheapest": "€115 more",
+      "trip": "12h, 1 stop",
+      "catch": "Example only. Bag included."
+    },
+    {
+      "option": "cash · airline YY nonstop, 10–17 Mar",
+      "pay_with": "Cash",
+      "true_total": "€612",
+      "vs_cheapest": "€222 more",
+      "trip": "10h, nonstop",
+      "catch": "Example only. Best trip."
+    },
+    {
+      "option": "points · airline YY, 10–17 Mar",
+      "pay_with": "64,000 miles + taxes",
+      "true_total": "64,000 miles + €210",
+      "vs_cheapest": "€210 cash still due",
+      "trip": "10h, nonstop",
+      "catch": "Example only. Seat not checked. (unverified) ratio."
+    }
+  ],
+  "no_cheaper_date": false,
+  "recommended_reason": "Cheapest is airline XX on 8–16 Mar at €449. The €390 split ticket is not a pick."
 }

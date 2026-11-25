@@ -23,14 +23,13 @@ Use this for a simple ask ("cheap flight to X"). A weaker agent can stop here.
    Ask about cards only if they want points compared. Do not interview them about bags, seats,
    or passports unless they bring those up.
 2. If you cannot ask, search ±3 days and say so. Exact dates only if they say **fixed**.
-3. Cap it at about **5 searches**. Cash top 3, each with a true total (base plus any bag or
-   seat fee you actually found; unknown stays unknown) and a visa flag: OK, needs X, or check.
-   If you did not ask for a passport, the flag is **check**.
-4. One line on points: if `cards/<country>.yaml` matches a card they named, say whether a
-   transfer looks plausibly better than cash. Do not claim a seat exists. Otherwise say points
-   were not compared.
-5. Offer a deep dive (full mode) for fee lines, visa sources, award links, other dates, and
-   booking steps. Never book or transfer in quick mode.
+3. Cap it at about **5 searches**. Then answer with **Best picks** and the **All options**
+   table capped at **5 rows** (same columns as full mode). If you did not ask for a passport,
+   the visa note in Catch is **check**.
+4. A points label appears only when a named card has a file and a transfer looks plausible.
+   Do not claim a seat exists. If they did not ask for points, there is no points pick.
+5. Offer a deep dive for fee lines, visa sources, award links, and booking steps. No next-steps
+   block in quick mode. Never book or transfer.
 
 ## Full mode
 
@@ -70,8 +69,8 @@ Ask once, in one message, for anything missing. Defaults only where noted.
 2. Scan the flexibility they chose. For a month, weekends only, or anything wider than a week,
    read a date grid first and fully price only the named date plus a few cheap samples (about
    7–10 queries per origin, not every day).
-3. If they said fixed, the recommendation stays on those dates. Still look ±3 days only to fill
-   the Alternative dates table, labelled as outside the fixed dates.
+3. If they said fixed, still look ±3 days, but those rows are tagged **other date** and are
+   never a pick. If nothing in the window was cheaper, say that in one line.
 4. Also check a nearby airport or a positioning hop when it is likely to matter. Name the
    self-transfer risks: no protection, bag re-check, and a possible entry visa. That is not a
    normal connection.
@@ -116,19 +115,39 @@ not require a login.
 
 ### Answer
 
-One ranked table, cheapest true total first: option, how they pay, base, fee lines, true
-total, value per point, duration, stops, visa flag, caveat, source. Sample numbers in
-`docs/example.json` are fiction. Do not reuse them.
+Use this only when you are comparing fares. If they asked for a watch, a ratio, whether to
+wait, or how flexible to be, answer that first. Do not invent a table to fill the shape.
+Sample numbers in `docs/example.json` are fiction. Do not copy them.
 
-Then an **Alternative dates** table: depart, return, cheapest true total, saving versus the
-requested dates in money and percent, airline and stops, trade-off (weekday, red-eye, longer
-trip). Top 3–5 cheaper pairs, or one sentence that none were cheaper. Mention better award
-space on a nearby date only if it was actually checked.
+**1. Best picks.** Up to three lines. Use a label only when an option earns it:
 
-Then steps for the top 1–3: where to book, and for points the link, the amount, the expected
-wait, and "I will not transfer or book until you say so."
+- **Cheapest:** lowest true total that is allowed to be a pick.
+- **Best trip:** fastest or fewest stops when the extra cost is small.
+- **Best use of points:** only if points were compared and a transfer may beat cash. No points
+  asked means no points pick. Never claim a seat you did not see.
 
-Then non-date alternatives: other airports, open-jaw, rail plus air, other cabins.
+Fewer than three is fine. Other dates are not picks when the user said **fixed**. A split
+ticket is not **Cheapest** unless they accepted a self-transfer.
+
+**2. All options.** One table, sorted by cash still to pay (award taxes for a points row).
+Cash, points, other dates, other airports, split tickets, and other cabins go here, each
+tagged in the Option cell (`cash`, `points`, `other date`, `other airport`, `split ticket`,
+`other cabin`). Six columns only:
+
+| Option | Pay with | True total | vs cheapest | Trip (time, stops) | Catch |
+|---|---|---|---|---|---|
+
+Every number ends with a source ref `[n]`. Mark unverified figures **(unverified)**. Cap at
+10 rows, then `…and N more`. Quick mode caps at 5. **vs cheapest** is against the lowest true
+total in the table, including rows that are not picks. A split ticket's Catch says
+**unprotected self-transfer**, plus the visa note. If no other date was cheaper, one sentence
+under the table says so. Mention better award space on a nearby date only if you checked it.
+
+**3. Next steps** (full mode only), for the picks: where to book a cash fare, or for points
+the link from `awards/links.yaml`, the amount, the wait, and "I will not transfer or book
+until you say so."
+
+**4. Sources.** A numbered list: site or tool, URL, and the time you read it.
 
 ### Buy now or wait?
 
@@ -155,7 +174,9 @@ records a baseline unless the fare is already under the threshold. Never book.
 - [ ] True totals show fee lines or say unknown; basic fares that hide fees are flagged
 - [ ] Visa flag is OK, needs X, or check, with a source when it is not check
 - [ ] Points use a card file or live research, and award space is "not checked" unless seen
-- [ ] Award link or programme URL, plus the 30-second checklist, if points were recommended
-- [ ] Alternative dates table, or a sentence that none were cheaper
+- [ ] Fare answers start with Best picks (only labels that were earned), then one options table
+- [ ] Other dates are inside that table; if none were cheaper, one sentence says so. Fixed dates are never a pick
+- [ ] A split ticket's Catch says unprotected self-transfer, and it is not Cheapest unless they accepted that
+- [ ] Award link or programme URL, plus the 30-second checklist, if a points pick was made
 - [ ] Buy-or-wait uses real evidence only and says it is not a forecast
 - [ ] Nothing was booked, paid, or transferred

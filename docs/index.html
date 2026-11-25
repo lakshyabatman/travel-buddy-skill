@@ -85,14 +85,12 @@
       <div class="hero-grid">
         <div>
           <p id="hero-route">LIS–GRU, 10–17 March, 2 adults, EUR. Airline names are placeholders.</p>
-          <table class="example" id="hero-table">
-            <thead><tr><th></th><th>Pay</th><th>Total</th><th>Note</th></tr></thead>
-            <tbody>
-              <tr><td>Cash</td><td>Airline XX</td><td>€520</td><td>Example only. Bags included. 1 stop.</td></tr>
-              <tr><td>Points</td><td>80,000 miles + €360 taxes</td><td>80k + €360</td><td>Example only. Seat not checked.</td></tr>
-            </tbody>
-          </table>
-          <p class="pick" id="hero-pick">Recommended pick: the cash fare, because the points seat was not checked.</p>
+          <ul id="hero-picks">
+            <li><strong>Cheapest.</strong> Airline XX, 8–16 Mar, €449. One day longer and a red-eye.</li>
+            <li><strong>Best trip.</strong> Airline YY nonstop on 10–17 Mar, €612.</li>
+            <li><strong>Best use of points.</strong> 64,000 miles + €210. Seat not checked.</li>
+          </ul>
+          <p class="pick" id="hero-pick">Cheapest is airline XX on 8–16 Mar at €449. The €390 split ticket is not a pick.</p>
         </div>
         <figure class="demo-gif">
           <img
@@ -114,7 +112,7 @@
         <li>Asks about bags, seats, and changes, then ranks by the true total: the base fare plus the fees you would really pay. A headline fare that leaves those out is flagged. Unknown fees stay unknown.</li>
         <li>Asks each traveller’s passport and any visa they already hold — there is no default nationality — and checks transit and entry from official sources.</li>
         <li>Compares award tickets using <code>cards/&lt;country&gt;.yaml</code> when that issuing country has a file. v1 includes one country file, India. If your country or card isn’t in a file yet, the agent researches the issuer’s official page and labels figures unverified.</li>
-        <li>Returns a ranked table (with a visa/transit flag), then an Alternative dates table (or a plain statement that no nearby date was cheaper), then exact transfer and booking steps. It can also set a price-watch that alerts only when the fare actually drops.</li>
+        <li>Leads with up to three picks, then one table of cash, points, other dates, and other airports, then the booking steps for the picks only. It can also set a price-watch that alerts only when the fare actually drops.</li>
       </ul>
       <p class="muted">Source of truth: <code>SKILL.md</code>. Every fare, fee, ratio, and visa rule must cite a source. Transfers are almost always irreversible. Nothing here assumes a home country.</p>
     </section>
@@ -145,81 +143,60 @@ chmod +x scripts/install.sh</pre>
     <section>
       <h2>Example output</h2>
       <p class="banner">This is a fictional example for illustration only. Do not use these fares, taxes, or ratios to book or transfer points.</p>
-      <p>A typical answer is a ranked table for the dates you asked about, then an Alternative dates table, then step-by-step instructions for the top picks, then other alternatives. Numbers below are made up, and the visa labels are not rulings. This illustration is Lisbon to São Paulo, departing 10 March and returning 17 March, priced in EUR, with one 23 kg checked bag and any seat. The same columns are used for a Singapore–Sydney trip or a Nairobi–Paris trip.</p>
+      <p>A fare answer leads with the picks, then one table. Numbers below are made up. This illustration is Lisbon to São Paulo for two adults. The same shape is used for any other city pair.</p>
+      <ul>
+        <li><strong>Cheapest.</strong> Airline XX, 8–16 Mar, €449. One day longer and a red-eye.</li>
+        <li><strong>Best trip.</strong> Airline YY nonstop, 10–17 Mar, €612.</li>
+        <li><strong>Best use of points.</strong> 64,000 miles + €210. Seat not checked.</li>
+      </ul>
       <table class="example">
         <thead>
-          <tr><th>#</th><th>Option</th><th>Pay with</th><th>Base</th><th>Fees</th><th>True total</th><th>Stops</th><th>Visa / transit</th><th>Caveats</th></tr>
+          <tr><th>Option</th><th>Pay with</th><th>True total</th><th>vs cheapest</th><th>Trip (time, stops)</th><th>Catch</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td>1</td>
-            <td>LIS–GRU, 10–17 Mar, airline XX standard</td>
+            <td>split ticket · airline ZZ, 10–17 Mar</td>
             <td>Cash</td>
-            <td>€260</td>
-            <td>Bag and seat included</td>
-            <td>€260</td>
-            <td>1</td>
-            <td>OK (example only)</td>
-            <td>Example only. Bundle beat the basic fare once the bag was added.</td>
+            <td>€390 [1]</td>
+            <td>—</td>
+            <td>16h, 2 stops</td>
+            <td>Example only. unprotected self-transfer. Visa: check.</td>
           </tr>
           <tr>
-            <td>2</td>
-            <td>LIS–GRU, 10–17 Mar, airline XX basic</td>
+            <td>other date · airline XX, 8–16 Mar</td>
             <td>Cash</td>
-            <td>€180</td>
-            <td>Bag €70; seat €25</td>
-            <td>€275</td>
-            <td>1</td>
-            <td>OK (example only)</td>
-            <td>Example only. Headline €180 is misleading.</td>
+            <td>€449 [1]</td>
+            <td>€59 more [1]</td>
+            <td>13h, 1 stop</td>
+            <td>Example only. Red-eye. This is the Cheapest pick.</td>
           </tr>
           <tr>
-            <td>3</td>
-            <td>LIS–GRU via a self-transfer, airline ZZ</td>
+            <td>cash · airline XX, 10–17 Mar</td>
             <td>Cash</td>
-            <td>€150</td>
-            <td>Bag unknown</td>
-            <td>incomplete</td>
-            <td>2</td>
-            <td>needs entry visa (example only)</td>
-            <td>Example only. Demoted: landside connection, visa not held. Not a real ruling.</td>
+            <td>€505 [1]</td>
+            <td>€115 more [1]</td>
+            <td>12h, 1 stop</td>
+            <td>Example only. Bag included.</td>
+          </tr>
+          <tr>
+            <td>cash · airline YY nonstop, 10–17 Mar</td>
+            <td>Cash</td>
+            <td>€612 [1]</td>
+            <td>€222 more [1]</td>
+            <td>10h, nonstop</td>
+            <td>Example only. Best trip.</td>
+          </tr>
+          <tr>
+            <td>points · airline YY, 10–17 Mar</td>
+            <td>64,000 miles + taxes</td>
+            <td>64,000 miles + €210 [2]</td>
+            <td>€210 cash still due [2]</td>
+            <td>10h, nonstop</td>
+            <td>Example only. Seat not checked. (unverified) ratio.</td>
           </tr>
         </tbody>
       </table>
-      <h3>Alternative dates</h3>
-      <p>This table always follows the ranked table. It shows other depart/return pairs inside the flexibility window, or states in one sentence that none were cheaper. Savings are versus the requested dates’ true total (here, a made-up €260). The skill also says when award space is better on a nearby date, if it actually checked.</p>
-      <table class="example">
-        <thead>
-          <tr><th>Depart</th><th>Return</th><th>Cheapest true total</th><th>Saving vs 10–17 Mar</th><th>Airline / stops</th><th>Trade-off</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>8 Mar (Sun)</td>
-            <td>16 Mar (Mon)</td>
-            <td>€208</td>
-            <td>€52 (20%)</td>
-            <td>Airline XX, 1 stop</td>
-            <td>Example only. One day longer. Red-eye outbound.</td>
-          </tr>
-          <tr>
-            <td>9 Mar (Mon)</td>
-            <td>17 Mar (Tue)</td>
-            <td>€234</td>
-            <td>€26 (10%)</td>
-            <td>Airline ZZ, nonstop</td>
-            <td>Example only. Weekday departure.</td>
-          </tr>
-          <tr>
-            <td>12 Mar (Thu)</td>
-            <td>20 Mar (Fri)</td>
-            <td>€247</td>
-            <td>€13 (5%)</td>
-            <td>Airline XX, 1 stop</td>
-            <td>Example only. Trip shifted later; return is a Friday.</td>
-          </tr>
-        </tbody>
-      </table>
-      <p class="muted">Example only: saver space on airline YY was open on 9 Mar and not on 10 Mar. A real answer says this only after checking the partner site. If no other date is cheaper, there are no rows — the skill says so in a sentence. Another fictional sketch, not a fare or a visa ruling: Singapore–Sydney in AUD, where a basic fare plus a 20 kg bag cost more than the standard brand that included the bag. It then gives exact booking or transfer steps, and says clearly that it has not booked or transferred anything.</p>
+      <p class="muted">Example only. The €390 row is not Cheapest, because it is an unprotected self-transfer. Sources would be a numbered list: [1] a flight search, with URL and time; [2] a card file or issuer page, with URL and time. Nothing was booked.</p>
     </section>
 
     <section>
@@ -249,9 +226,9 @@ chmod +x scripts/install.sh</pre>
     fetch("example.json").then(function (r) { return r.json(); }).then(function (ex) {
       var route = document.getElementById("hero-route");
       var pick = document.getElementById("hero-pick");
-      if (!route || !ex || !ex.cash) return;
+      if (!route || !ex || !ex.picks) return;
       route.textContent = ex.origin + "–" + ex.destination + ", " + ex.depart + " to " + ex.return + ", " + ex.passengers + " adults, " + ex.currency + ". " + ex.label;
-      pick.textContent = "Recommended pick: " + ex.recommended_reason;
+      pick.textContent = ex.recommended_reason;
     }).catch(function () {});
   </script>
   <footer>
