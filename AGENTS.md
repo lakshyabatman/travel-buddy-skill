@@ -18,7 +18,7 @@ unless they want a deep dive:
 - Ask only for missing dates and flexibility, passengers, and cards if they want points.
 - Exact dates only if they say fixed. If you cannot ask, use ±3 days and say so.
 - At most about 5 searches. Answer with Best picks and at most 5 rows of the one options table.
-- A points pick only if they asked and a transfer looks plausible. Never claim a seat is free.
+- A **Best points value (check seat)** pick only if they asked and a transfer looks plausible. Never claim a seat is free.
 - Never book, pay, or transfer.
 
 `search.py`, `history.py`, and `watch.py` are an optional scraper. The skill works in a

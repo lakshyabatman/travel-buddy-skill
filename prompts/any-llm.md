@@ -31,7 +31,7 @@ Ask, in one message, for anything missing: dates and how flexible they are (fixe
 and which cards I have only if I want points compared. Do not assume my dates are fixed. If
 you cannot ask, search ±3 days and say so.
 
-Use at most about 5 searches. Then: **Best picks** (Cheapest, Best trip, Best use of points,
+Use at most about 5 searches. Then: **Best picks** (Cheapest, Best trip, Best points value (check seat),
 and only the labels an option earns) and **All options**, one table of at most 5 rows with
 columns Option, Pay with, True total, vs cheapest, Trip (time, stops), Catch. Tag other dates
 and airports in that table. If you did not ask my passport, Catch says visa check. No points

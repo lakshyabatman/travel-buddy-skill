@@ -8,8 +8,9 @@ comparison, flexible-date or nearby-airport alternatives, or a price-watch on a 
 follow the repository's `SKILL.md` (Flight Points Optimiser). It is the source of truth.
 
 For a simple ask, follow Quick mode only: one question for dates and flexibility, passengers,
-and cards if they want points; about 5 searches; Best picks plus at most 5 rows of the one
-options table; offer a deep dive. `search.py` is optional and the skill works without it.
+and cards if they want points; about 5 searches; Best picks (Cheapest, Best trip, Best
+points value (check seat)) plus at most 5 rows of the one options table; offer a deep dive.
+`search.py` is optional and the skill works without it.
 
 Also load the matching `cards/<country>.yaml` when one exists for the card-issuing country.
 `cards/india.yaml` is one country file, not a default route or passport. Never book, pay, or

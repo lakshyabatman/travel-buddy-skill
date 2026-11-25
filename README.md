@@ -23,7 +23,7 @@ It tells your AI agent how to:
 - compare each card's transfer partners using `cards/<country>.yaml`: points needed, taxes,
   value per point, caps, fees, transfer times (and research the issuer live if that country or
   card has no file yet);
-- lead with up to three picks, then one table of cash, points, other dates, and other airports;
+- lead with up to three picks (Cheapest, Best trip, Best points value (check seat)), then one table of cash, points, other dates, and other airports;
 - optionally set up a price-watch routine that alerts only on real drops.
 
 It **never books, pays, or transfers points** without your explicit go-ahead, and it must cite a

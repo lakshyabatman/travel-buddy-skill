@@ -79,6 +79,7 @@ cases:
     prompt: "Is 60000 transferable points enough for a business award from Doha to London on 2 September, one way, one adult?"
     must:
       - Does not claim the seat is available
+      - If it labels a points option, the label is Best points value (check seat)
       - Gives an award-search link or the programme page and the 30-second checklist
   - id: buy-or-wait
     kind: history

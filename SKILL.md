@@ -40,8 +40,9 @@ Use this for a simple ask ("cheap flight to X"). A weaker agent can stop here.
 3. Cap it at about **5 searches**. Then answer with **Best picks** and the **All options**
    table capped at **5 rows** (same columns as full mode). If you did not ask for a passport,
    the visa note in Catch is **check**.
-4. A points label appears only when a named card has a file and a transfer looks plausible.
-   Do not claim a seat exists. If they did not ask for points, there is no points pick.
+4. The points label is **Best points value (check seat)**. It appears only when a named card
+   has a file and a transfer looks plausible. Do not claim a seat exists. If they did not ask
+   for points, there is no points pick.
 5. Offer a deep dive for fee lines, visa sources, award links, and booking steps. No next-steps
    block in quick mode. Never book or transfer.
 
@@ -140,8 +141,8 @@ Sample numbers in `docs/example.json` are fiction. Do not copy them.
 
 - **Cheapest:** lowest true total that is allowed to be a pick.
 - **Best trip:** fastest or fewest stops when the extra cost is small.
-- **Best use of points:** only if points were compared and a transfer may beat cash. No points
-  asked means no points pick. Never claim a seat you did not see.
+- **Best points value (check seat):** only if points were compared and a transfer may beat
+  cash. No points asked means no points pick. Never claim a seat you did not see.
 
 Fewer than three is fine. Other dates are not picks when the user said **fixed**. A split
 ticket is not **Cheapest** unless they accepted a self-transfer.
