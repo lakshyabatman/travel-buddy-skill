@@ -3,7 +3,7 @@
 One YAML file per card-issuing **country**: `cards/india.yaml`, `cards/us.yaml`, and so on.
 ISO 3166-1 alpha-2 codes are preferred in `country_code` (`IN`, `US`, `GB`).
 
-v1 ships **India only**. Other countries are planned; see the backlog in `CONTRIBUTING.md`.
+v1 ships **India only** (`cards/india.yaml`). That is one issuing country, not a default route, currency, or passport. Other countries are planned; see the backlog in `CONTRIBUTING.md`.
 Do not invent a file from memory. Add a country only from official issuer pages, with
 `verified` and `last_checked` on every card and partner.
 

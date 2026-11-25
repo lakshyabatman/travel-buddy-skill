@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lakshyabatman/travel-buddy-skill/schemas/fees.schema.json",
+  "title": "Airline fee snapshot",
+  "description": "A dated reading of one airline's official fee page for one published market. Not a traveller default, and not a guess.",
+  "type": "object",
+  "required": ["schema_version", "airline", "region", "currency", "source_url", "last_checked", "verified", "fare_brands"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "airline": { "type": "string", "minLength": 1 },
+    "iata": { "type": "string", "pattern": "^[A-Z0-9]{2}$" },
+    "region": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The market this page describes. Not the traveller's country."
+    },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "source_url": { "type": "string", "minLength": 12 },
+    "last_checked": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "verified": { "type": "boolean" },
+    "notes": { "type": "string" },
+    "fare_brands": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/fare_brand" }
+    }
+  },
+  "$defs": {
+    "fee_line": {
+      "type": "object",
+      "required": ["summary"],
+      "additionalProperties": true,
+      "properties": {
+        "summary": { "type": "string", "minLength": 1 },
+        "amount": { "type": ["number", "string", "null"] },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "per": { "type": "string" },
+        "included": { "type": "boolean" }
+      }
+    },
+    "fare_brand": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "cabin_bag": { "anyOf": [{ "$ref": "#/$defs/fee_line" }, { "type": "null" }] },
+        "checked_bag": { "anyOf": [{ "$ref": "#/$defs/fee_line" }, { "type": "null" }] },
+        "seat_selection": { "anyOf": [{ "$ref": "#/$defs/fee_line" }, { "type": "null" }] },
+        "changes": { "anyOf": [{ "$ref": "#/$defs/fee_line" }, { "type": "null" }] },
+        "refunds": { "anyOf": [{ "$ref": "#/$defs/fee_line" }, { "type": "null" }] },
+        "payment_surcharge": { "anyOf": [{ "$ref": "#/$defs/fee_line" }, { "type": "null" }] },
+        "booking_fee": { "anyOf": [{ "$ref": "#/$defs/fee_line" }, { "type": "null" }] },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

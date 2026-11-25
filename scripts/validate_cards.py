@@ -31,12 +31,14 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "schemas" / "cards.schema.json"
+FEES_SCHEMA_PATH = ROOT / "schemas" / "fees.schema.json"
 CARDS_DIR = ROOT / "cards"
+FEES_DIR = ROOT / "fees"
 STALE_DAYS_DEFAULT = 60
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Validate card transfer YAML files.")
+    p = argparse.ArgumentParser(description="Validate card files and airline fee snapshots.")
     p.add_argument("--stale-days", type=int, default=STALE_DAYS_DEFAULT)
     p.add_argument("--strict", action="store_true", help="Exit 2 if any last_checked is stale")
     p.add_argument("files", nargs="*", help="Specific YAML files (default: cards/*.yaml)")
@@ -59,6 +61,64 @@ def iter_dates(doc):
     for card in doc.get("cards") or []:
         if "last_checked" in card:
             yield f"cards.{card.get('id','?')}", str(card["last_checked"])
+
+
+def check_date(label, raw, today, stale_days):
+    """Return (error_line or None, warning_line or None)."""
+    try:
+        checked = datetime.strptime(raw, "%Y-%m-%d").date()
+    except ValueError:
+        return f"  ERROR: {label}: last_checked {raw!r} is not YYYY-MM-DD", None
+    age = (today - checked).days
+    if age > stale_days:
+        return None, f"  WARN: {label}: last_checked {raw} is {age} days old (threshold {stale_days})"
+    return None, None
+
+
+def validate_fees(today, stale_days):
+    """Validate fees/*.yaml. Missing snapshots are allowed; a broken one is not."""
+    import json
+    files = sorted(FEES_DIR.glob("*.yaml")) if FEES_DIR.is_dir() else []
+    if not files:
+        print("== fees/")
+        print("  no snapshots (optional)")
+        return 0, 0
+    schema = json.loads(FEES_SCHEMA_PATH.read_text())
+    validator = Draft202012Validator(schema)
+    errors = 0
+    warnings = 0
+    for path in files:
+        print(f"== {path.relative_to(ROOT)}")
+        try:
+            doc = load_yaml(path)
+        except Exception as e:
+            print(f"  ERROR: could not parse YAML: {e}")
+            errors += 1
+            continue
+        if not isinstance(doc, dict):
+            print("  ERROR: file did not parse to a mapping")
+            errors += 1
+            continue
+        schema_errs = sorted(validator.iter_errors(doc), key=lambda e: list(e.path))
+        for e in schema_errs:
+            loc = ".".join(str(p) for p in e.path) or "(root)"
+            print(f"  ERROR: {loc}: {e.message}")
+            errors += 1
+        source = doc.get("source_url") or ""
+        if doc.get("verified") and not source.startswith("https://"):
+            print("  ERROR: verified:true but source_url is not an https URL")
+            errors += 1
+        if doc.get("last_checked"):
+            err, warn = check_date("last_checked", str(doc["last_checked"]), today, stale_days)
+            if err:
+                print(err)
+                errors += 1
+            if warn:
+                print(warn)
+                warnings += 1
+        if not schema_errs:
+            print(f"  {len(doc.get('fare_brands') or [])} fare brands")
+    return errors, warnings
 
 
 def main():
@@ -111,21 +171,22 @@ def main():
                     errors += 1
 
         for label, raw in iter_dates(doc):
-            try:
-                checked = datetime.strptime(raw, "%Y-%m-%d").date()
-            except ValueError:
-                print(f"  ERROR: {label}: last_checked {raw!r} is not YYYY-MM-DD")
+            err, warn = check_date(label, raw, today, args.stale_days)
+            if err:
+                print(err)
                 errors += 1
-                continue
-            age = (today - checked).days
-            if age > args.stale_days:
-                print(f"  WARN: {label}: last_checked {raw} is {age} days old (threshold {args.stale_days})")
+            if warn:
+                print(warn)
                 warnings += 1
 
         if not schema_errs:
             n_cards = len(doc.get("cards") or [])
             n_partners = sum(len(p.get("partners") or []) for p in (doc.get("programs") or {}).values())
             print(f"  {n_cards} cards, {n_partners} partners")
+
+    fee_errors, fee_warnings = validate_fees(today, args.stale_days)
+    errors += fee_errors
+    warnings += fee_warnings
 
     print()
     print(f"{errors} error(s), {warnings} stale-date warning(s)")

@@ -1,0 +1,40 @@
+# Airport prices only, read on Jetstar's official excess-baggage page on 2026-11-25.
+# Prepaid bag prices bought with the booking vary by route and are not a single number on this
+# page, so they are not recorded. Do not invent them.
+schema_version: 1
+airline: Jetstar
+iata: JQ
+region: "Asia-Pacific airport prices for Jetstar Airways (JQ) and Jetstar Japan (GK); charged in the departure country's currency. Not a default origin."
+currency: AUD
+source_url: "https://www.jetstar.com/au/en/help/excess-baggage-charges-at-the-airport"
+last_checked: 2026-11-25
+verified: true
+notes: >
+  These are prices if the traveller still needs a bag at the airport, not the cheaper prepaid
+  rate. Seat-selection, change, refund, and card-surcharge figures were not on this page, so
+  they are omitted (unknown, not zero). Fees below were read on the URL above.
+fare_brands:
+  - name: "JQ domestic Australia / New Zealand — airport checked bag, no allowance purchased yet"
+    checked_bag:
+      included: false
+      amount: 120
+      currency: AUD
+      per: "first 20 kg per passenger at the airport; NZD 120 on New Zealand departure"
+      summary: "AUD 120 or NZD 120 for the first 20 kg, then AUD 30 or NZD 30 per extra kg."
+    notes: "Domestic JQ airport table. Online prepaid price was not stated as one number."
+  - name: "JQ international — airport checked bag, no allowance purchased yet"
+    checked_bag:
+      included: false
+      amount: 170
+      currency: AUD
+      per: "first 20 kg at the airport when the fee is charged in AUD"
+      summary: "First 20 kg at the airport: AUD 170, NZD 170, USD 112, SGD 170, JPY 17250, and the other departure currencies listed on the page. Extra kg: AUD 50, USD 35, SGD 50, JPY 5600, and the other currencies on the page."
+    notes: "International JQ airport table. Use the currency of the departure country."
+  - name: "JQ domestic Australia / New Zealand — extra cabin bag at the airport from 2 February 2027"
+    cabin_bag:
+      included: false
+      amount: 105
+      currency: AUD
+      per: "Priority Carry-on at airport check-in; NZD 105 on New Zealand departure"
+      summary: "From 2 February 2027, if the booking has only an underseat bag: Priority Carry-on is AUD/NZD 105 at airport check-in or AUD/NZD 130 at the boarding gate. Checked baggage at the boarding gate is AUD/NZD 150."
+    notes: "The same page lists different carry-on airport prices for travel before 2 February 2027 (+7 kg extra carry-on). Read the row that matches the travel date. International amounts are on the page and are not repeated here."

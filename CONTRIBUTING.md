@@ -67,6 +67,13 @@ India (`cards/india.yaml`) is the v1 file. A backlog of additional *Indian* card
 Reserve / Olympus, ICICI, SBI, HSBC, AU, Standard Chartered, and others) sits as a comment at
 the bottom of that file.
 
+## Airline fee snapshots
+
+`fees/*.yaml` holds a few dated readings of official airline fee pages. See `fees/README.md`
+and `schemas/fees.schema.json`. Add a file only for figures you read on the airline's own page,
+with `source_url`, `last_checked`, and `verified: true`. Do not copy a blog, and do not turn one
+country's fees into a default. Run `python scripts/validate_cards.py` after editing.
+
 ## search.py and docs
 
 `fast-flights` scrapes Google Flights and breaks when Google changes its page. If it stops

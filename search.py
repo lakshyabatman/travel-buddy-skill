@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Google Flights helper for the india-flight-optimiser skill.
+"""Google Flights helper for the flight-points-optimiser skill.
 
 Uses the free, unofficial `fast-flights` library (https://github.com/AWeirdDev/fast-flights),
 which scrapes Google Flights. No API key, no paid API. Because it scrapes, it can break
@@ -12,10 +12,10 @@ price is the round-trip total Google shows for that outbound choice. Always re-c
 fare on the airline/OTA site before booking.
 
 Examples:
-  python search.py LHR JFK 2026-12-16 --currency GBP
-  python search.py SFO NRT 2027-01-10 --return 2027-01-17 --cabin business --currency USD
-  python search.py BLR SIN 2027-02-05 --flex 3 --airports BLR,MAA,COK --currency INR --top 15
-  python search.py LHR JFK 2027-03-01 --json-only > out.json
+  python search.py MEX MAD 2026-12-16 --currency MXN
+  python search.py SIN SYD 2027-01-10 --return 2027-01-17 --cabin business --currency AUD
+  python search.py GRU LIS 2027-02-05 --flex 3 --currency BRL --top 15
+  python search.py NBO CDG 2027-03-01 --json-only > out.json
 """
 from __future__ import annotations
 
@@ -122,7 +122,7 @@ def main(argv=None):
     p.add_argument("--cabin", default="economy", choices=sorted(CABINS))
     p.add_argument("--adults", type=int, default=1)
     p.add_argument("--children", type=int, default=0)
-    p.add_argument("--currency", default="", help="ISO 4217 code passed through to Google Flights (USD, GBP, EUR, INR, JPY, ...). Default: empty, so Google chooses. fast-flights supports this.")
+    p.add_argument("--currency", default="", help="ISO 4217 code passed through to Google Flights (USD, EUR, GBP, MXN, BRL, AUD, JPY, ...). Default: empty, so Google chooses. fast-flights supports this.")
     p.add_argument("--max-stops", type=int, default=None)
     p.add_argument("--flex", type=int, default=0, help="Scan +/-N days around the departure date (return shifts by the same amount)")
     p.add_argument("--airports", help="Comma-separated origin airports to compare, e.g. BLR,MAA,COK,HYD (overrides origin)")

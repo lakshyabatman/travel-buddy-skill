@@ -12,24 +12,31 @@ It tells your AI agent how to:
 
 - search cash fares (the agent's own flight search first, then Google Flights, Skyscanner,
   Kayak, the airline's site, or the bundled `search.py`);
-- try flexible dates (±3 days, date grids), nearby and secondary airports, positioning hops to
-  better-connected hubs, open-jaw tickets, rail-plus-air, and separate tickets via hubs, with
-  self-transfer and visa risks stated;
+- try flexible dates (only after asking; ±3 days if it cannot ask), nearby and secondary
+  airports, positioning hops to better-connected hubs, open-jaw tickets, rail-plus-air, and
+  separate tickets via hubs;
+- ask about bags, seats, and changes, then rank by the **true total** (base fare plus the fees
+  the traveller would really pay). Unknown fees stay unknown. A few official fee snapshots live
+  in `fees/`;
+- ask each traveller's passport nationality and any visa they already hold, then flag transit
+  and entry from official sources (OK / needs X / check). There is no default passport;
 - compare each card's transfer partners using `cards/<country>.yaml`: points needed, taxes,
   value per point, caps, fees, transfer times (and research the issuer live if that country or
   card has no file yet);
-- return a ranked table with exact transfer and booking steps, plus alternatives;
+- return a ranked table with exact transfer and booking steps, an Alternative dates table, plus
+  other alternatives;
 - optionally set up a price-watch routine that alerts only on real drops.
 
 It **never books, pays, or transfers points** without your explicit go-ahead, and it must cite a
-source for every fare and ratio.
+source for every fare, fee, ratio, and visa rule.
 
 `SKILL.md` is the source of truth. Adapters for Claude Code, Cursor, Codex / `AGENTS.md` readers,
 and a paste-in prompt for any LLM all point back at it.
 
-v1 ships **India** card data only (`cards/india.yaml`: HDFC Infinia, HDFC Diners Club Black,
-Axis Atlas, Amex India Membership Rewards). US, UK, UAE, Singapore, Canada and Australia files
-are planned; see `CONTRIBUTING.md`.
+Card files are one per issuing country. v1 includes `cards/india.yaml` only (HDFC Infinia,
+HDFC Diners Club Black, Axis Atlas, Amex India Membership Rewards). That file is not a default
+route or passport. Other countries are researched from the issuer and labelled unverified until
+someone adds a file; see `CONTRIBUTING.md`.
 
 ## Install
 
@@ -52,15 +59,16 @@ chmod +x scripts/install.sh
 `./scripts/install.sh --help` lists the same options. You can also copy `SKILL.md`, `cards/` and
 `search.py` into your agent's skills directory by hand.
 
-Then ask, for example:
+Then ask, for example (three regions, none of them a default):
 
-> Cheapest way to get from London to Tokyo around 10 March, ±3 days, economy, 2 adults, in GBP.
-> I have an Amex UK Platinum and 180,000 Membership Rewards points.
+> Cheapest way from Mexico City to Madrid around 10 March, economy, 1 adult, in MXN.
+> Cabin bag only, any seat, I don't need free changes. Passport: Mexico. No other visas.
 
-Or, from India:
+> Cheapest way from Singapore to Sydney, ±3 days, 2 adults, in AUD. One 20 kg checked bag each,
+> sit together. Passports: Singapore.
 
-> Cheapest way to get from Bengaluru to Tokyo around 10 March. I have HDFC Infinia (180,000
-> points) and Axis Atlas (40,000 EDGE Miles).
+> Cheapest way from Nairobi to Paris, one way, in EUR. Ask me how flexible the dates are before
+> you search. Passport: Kenya. I also hold a Schengen visa.
 
 ## search.py (optional)
 
@@ -68,23 +76,24 @@ Or, from India:
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-python search.py LHR JFK 2026-12-16 --currency GBP
-python search.py SFO NRT 2027-02-05 --flex 3 --airports SFO,OAK,SJC --currency USD --top 15
-python search.py BLR SIN 2027-01-10 --return 2027-01-17 --cabin business --currency INR
-python search.py LHR JFK 2027-03-01 --json-only > out.json
+python search.py MEX MAD 2026-12-16 --currency MXN
+python search.py SIN SYD 2027-02-05 --flex 3 --currency AUD --top 15
+python search.py NBO CDG 2027-01-10 --return 2027-01-17 --currency EUR
+python search.py GRU LIS 2027-03-01 --json-only > out.json
 ```
 
-`--currency` is passed through to Google Flights (ISO 4217: `USD`, `GBP`, `EUR`, `INR`, `JPY`,
-…). If you omit it, Google chooses. The script does not convert currencies itself.
+`--currency` is passed through to Google Flights (ISO 4217, for example `USD`, `EUR`, `GBP`,
+`MXN`, `BRL`, `AUD`, `KES`). If you omit it, Google chooses. The script does not convert
+currencies itself.
 
 It prints a price-sorted table and a "cheapest per origin/date" view, followed by JSON (use
 `--json-only` for agents). Prices are totals for all passengers as shown by Google Flights at
 fetch time.
 
 Notes:
-- `fast-flights` is an unofficial scraper. It was tested working on 2026-11-25 (v3.1.0) on both
-  LHR–JFK and BLR–DEL, but it can break or be rate-limited at any time. If it fails, use Google
-  Flights, Skyscanner or Kayak in a browser.
+- `fast-flights` is an unofficial scraper. It was tested working on 2026-11-25 (v3.1.0) on
+  LHR–JFK and BLR–DEL. Those were test routes, not preferred origins. It can break or be
+  rate-limited at any time. If it fails, use Google Flights, Skyscanner or Kayak in a browser.
 - Round-trip results are less complete than one-way searches, so cross-check round trips in a
   browser.
 - `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × `--airports` small.
@@ -110,9 +119,9 @@ pip install -r requirements.txt
 python scripts/validate_cards.py
 ```
 
-The script checks every `cards/*.yaml` against `schemas/cards.schema.json` and warns when
-`last_checked` is more than 60 days old. GitHub Actions runs this plus a `search.py` smoke test
-(see `.github/workflows/ci.yml`).
+The script checks every `cards/*.yaml` against `schemas/cards.schema.json` and every
+`fees/*.yaml` against `schemas/fees.schema.json`, and warns when `last_checked` is more than 60
+days old. GitHub Actions runs this plus a `search.py` smoke test (see `.github/workflows/ci.yml`).
 
 ## Disclaimer
 

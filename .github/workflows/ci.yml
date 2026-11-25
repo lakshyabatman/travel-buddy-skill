@@ -15,7 +15,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Validate card files
+      - name: Validate card files and airline fee snapshots
         run: python scripts/validate_cards.py
       - name: Check docs coverage table is current
         run: python scripts/build_docs.py --check

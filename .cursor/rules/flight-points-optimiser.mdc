@@ -7,9 +7,11 @@ When the user wants the cheapest flight between two places (or "anywhere"), a ca
 comparison, flexible-date or nearby-airport alternatives, or a price-watch on a route, load and
 follow the repository's `SKILL.md` (Flight Points Optimiser). It is the source of truth.
 
-Also load the matching `cards/<country>.yaml` when one exists. Never book, pay, or transfer
-points without explicit go-ahead for that exact action. Never invent fares, award prices, or
-ratios; cite a source for every number and label unverified figures.
+Also load the matching `cards/<country>.yaml` when one exists for the card-issuing country.
+`cards/india.yaml` is one country file, not a default route or passport. Never book, pay, or
+transfer points without explicit go-ahead for that exact action. Never invent fares, award
+prices, bag or seat fees, ratios, or visa rules; cite a source for every number and label
+unverified figures. There is no default nationality.
 
 Date flexibility is an explicit question, never a silent default. Before searching, ask whether
 the dates are flexible and by how much: fixed, ±1 day, ±3 days, ±1 week, any time in a month,
@@ -18,3 +20,10 @@ user says fixed. If you cannot ask, use ±3 days and say so. Scan that window an
 it is wide. After the ranked table, always include an Alternative dates table (top 3–5 cheaper
 depart/return pairs with absolute and percent savings, airline/stops, and the trade-off, or say
 none were cheaper).
+
+Ask once about bags, seats, and whether changes or refunds matter. Rank by the true total
+(base fare plus those fees from the airline's official page or checkout), show each fee line,
+and flag a headline fare that omits them. Ask each traveller's passport and any visa they
+already hold. For every layover and the destination, cite an official immigration page or the
+IATA Travel Centre / an airline Timatic tool, and mark the option OK, needs X, or check. Drop
+or demote an option that needs a visa they cannot realistically get, and say why.

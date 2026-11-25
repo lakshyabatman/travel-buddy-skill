@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILL_NAME="flight-points-optimiser"
 # Files the running skill needs. SKILL.md is the source of truth.
-ITEMS=(SKILL.md search.py requirements.txt cards prompts)
+ITEMS=(SKILL.md search.py requirements.txt cards fees prompts)
 
 usage() {
   cat <<USAGE
@@ -67,7 +67,10 @@ append_agents() {
 When the user wants the cheapest flight, a cash-vs-points comparison, flexible-date or
 nearby-airport alternatives, or a price-watch on a route, read and follow
 ${skill_ref} (source of truth). Load ${cards_ref} when one exists.
-Never book, pay, or transfer points without explicit go-ahead. Never invent fares or ratios.
+Ask how flexible the dates are, and rank by the true total (base fare plus the bag, seat,
+and other fees the traveller would pay). Ask each traveller's passport; there is no default
+nationality. Never book, pay, or transfer points without explicit go-ahead. Never invent
+fares, fees, ratios, or visa rules.
 BLOCK
 )
   mkdir -p "$dir"

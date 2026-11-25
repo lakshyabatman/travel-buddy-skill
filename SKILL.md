@@ -16,7 +16,10 @@ has no file yet, research the issuer's official page live and label every figure
 
 Files in this skill:
 - `cards/`: per-country card -> airline/hotel transfer tables (ratios, caps, transfer times,
-  sources, `last_checked`, `verified`). See `cards/README.md`.
+  sources, `last_checked`, `verified`). See `cards/README.md`. One file per issuing country.
+  `cards/india.yaml` is the country file shipped in v1, not a default route, currency, or passport.
+- `fees/`: optional dated snapshots of official airline fee pages (`fees/README.md`,
+  `schemas/fees.schema.json`). A missing or stale file means "look it up", not "guess".
 - `search.py`: optional Google Flights helper (free `fast-flights` library; supports `--currency`).
 
 ## Hard rules (read before doing anything)
@@ -31,6 +34,17 @@ Files in this skill:
    award search) before you recommend a transfer. Never assume a seat exists because a chart
    price exists.
 5. Prices change by the minute. Tell the user to re-check the fare at the moment of booking.
+6. **Never invent bag, seat, payment, booking, or other add-on fees.** For each shortlisted
+   option, read the airline's official fee page or the fare-brand details shown at checkout,
+   and cite the source and time. A third-party site or a remembered fee is **unverified**.
+   If you cannot find a fee, say it is **unknown**. Do not fill the gap with a guess, and do
+   not treat an unknown fee as zero. `fees/*.yaml` is a few dated official snapshots, not a
+   complete table and not a default airline.
+7. **Never invent visa or transit rules.** For every layover and the destination, cite an
+   official government immigration or embassy page, or the IATA Travel Centre / a Timatic-based
+   tool the airline itself exposes. If you are unsure, mark it **unverified** and tell the user
+   to confirm with the airline or the embassy. Never present a visa answer as certain without
+   an official source. There is no default passport.
 
 ## Inputs
 
@@ -45,10 +59,14 @@ where noted.
 | Flexibility | **Always ask. Never a silent default of "exact dates".** Offer: fixed, ±1 day, ±3 days, ±1 week, any time in a given month, or weekends only. On a round trip, ask about the **return separately**. Search exact dates only if the user says **fixed**. If you cannot ask (an automated run, or any turn with no way to get an answer), use **±3 days** and say so. If they already stated the flexibility, use that and do not ask again. |
 | Cabin | economy / premium-economy / business / first. Default economy. |
 | Passengers | Adults, children, infants. Default 1 adult. |
-| Currency | The user's local currency, or one they name (ISO 4217, e.g. USD, EUR, GBP, INR, JPY). If unclear, ask once; otherwise use the currency implied by their location or card-issuing country. Pass it to `search.py --currency` and quote every cash price in that currency. |
-| Cards and balances | Which cards they hold (issuer and product, e.g. Chase Sapphire Reserve, HDFC Infinia, Amex UK Platinum) and current point balances. Also any airline miles already held. **Ask if not given**; without these, do a cash-only answer and say points were not compared. |
-| Card-issuing country | Needed to pick the right `cards/<country>.yaml`. Ask if it is not obvious from the cards. |
-| Constraints | Max stops, preferred/avoided airlines, baggage, visa limits (transit visas matter for self-transfer), latest arrival, budget. |
+| Currency | The currency they want prices quoted in (ISO 4217). If they don't name one, ask once; do not assume a country. Pass it to `search.py --currency` and quote every cash price in that currency. |
+| Bags | **Ask once.** Cabin bag only, or how many checked bags and the weight of each. Do not assume "no checked bag" or any airline's allowance. |
+| Seats | **Ask once.** Any seat, sit together (for a group), or extra legroom. |
+| Changes and refunds | **Ask once** whether they care about free changes or refunds. If they do, a cheap fare that cannot be changed is not automatically the winner. |
+| Passports and visas held | **Ask for every traveller** if they might differ: passport nationality, plus any residence permit or visa they already hold. Examples of documents that can change a transit rule, not a default nationality: a US visa, a UK visa, a Schengen visa, a Canadian eTA, an Australian ETA, an Indian e-visa, a Gulf residence permit. There is **no default passport**. |
+| Cards and balances | Which cards they hold (issuer and product) and current point balances. Also any airline miles already held. **Ask if not given**; without these, do a cash-only answer and say points were not compared. Examples from different regions, not a home country: a US Ultimate Rewards card, a UK Membership Rewards card, an Indian reward-points card, a Singapore miles card, a Brazilian or Gulf issuer's card. |
+| Card-issuing country | Needed to pick the right `cards/<country>.yaml`. Ask if it is not obvious from the cards. Do not assume the departure country issues the card. |
+| Constraints | Max stops, preferred or avoided airlines, latest arrival, budget. Bags, seats, changes, and passports are the rows above, not a silent extra. |
 
 ## Ask about date flexibility first
 
@@ -75,6 +93,10 @@ If you **cannot ask** (an automated run, a price-watch re-run, or any other case
 channel), do not assume the dates are fixed. **Default to ±3 days and say so** in the answer,
 for example: "You didn't specify flexibility and I couldn't ask, so I searched ±3 days around
 the dates."
+
+The same limit applies to bags, seats, changes, and passports. If you cannot ask, do **not**
+invent a nationality, a checked-bag count, or a fee. Rank on the base fare only, label every
+missing fee **unknown**, put **check** in the visa column, and say the true total is incomplete.
 
 ## Step 0: Check that the card data is fresh
 
@@ -152,32 +174,32 @@ clearly meaningful amount per person in the chosen currency) as an alternative:
   window instead of querying every day (see Step 1). Note day-of-week patterns: midweek
   departures are often cheaper than Friday or Sunday; red-eyes are often cheaper than daytime
   flights; a cheaper return can make the trip longer. These comparisons fill the **Alternative
-  dates** table in Step 4.
+  dates** table in Step 6.
 - If they said **fixed**, the ranked recommendation stays on the exact dates. Still scan ±3 days
   around those dates so the Alternative dates table can show cheaper pairs, or say that none
   were cheaper. Label every other date as outside the fixed dates. Do not swap the recommended
   itinerary onto another day unless they then agree.
 - **Nearby / alternate origins and destinations.** Always look at other airports serving the
   same metro area, and at a positioning hop to a better-connected hub, adding the positioning
-  flight's price and time and a buffer. Worked examples (adapt to the user's actual cities):
-  - **India:** from Bengaluru compare BLR with MAA (Chennai), COK (Kochi), HYD (Hyderabad), plus
-    positioning to the big hubs **DEL / BOM**, which often have more nonstop international
-    options and sales.
-  - **United States:** secondary airports in the same metro, e.g. **OAK / SJC vs SFO**, EWR / LGA
-    vs JFK, BUR / SNA / ONT vs LAX, BWI / IAD vs DCA, FLL vs MIA. Check whether a ground
-    transfer (BART, AirTrain, FlyAway) still beats the fare gap.
-  - **Europe:** low-cost bases and alternate airports (LTN / STN / LGW vs LHR, ORY vs CDG,
-    CIA / CIA-area vs FCO, BER vs the older city airports where relevant) and **rail plus
-    air**: a cheap flight into a nearby city plus a high-speed train (Thalys/Eurostar, TGV,
-    AVE, ICE, Italo) can beat a last-leg fare. Say when tickets are separate and unprotected.
-  - **Gulf and South-East Asia hubs:** compare through-fares with two tickets via DXB, AUH,
-    DOH, BAH, MCT, or SIN, KUL, BKK, HKG. See self-transfer warnings below.
+  flight's price and time and a buffer. Use the user's actual cities. Examples from several
+  regions (none of these is a default origin):
+  - **Americas:** OAK / SJC vs SFO, EWR / LGA vs JFK, BUR / SNA / ONT vs LAX, BWI / IAD vs DCA,
+    FLL vs MIA, YYZ vs YTZ, MEX vs NLU, GRU vs CGH / VCP, EZE vs AEP, BOG, SCL. Check whether
+    the ground transfer still beats the fare gap.
+  - **Europe:** LTN / STN / LGW vs LHR, ORY vs CDG, and **rail plus air** (a cheap flight into a
+    nearby city plus Eurostar, TGV, AVE, or ICE). Say when those tickets are separate and
+    unprotected.
+  - **Africa:** JNB vs HLA, CPT, NBO, ADD, CAI, and other hubs when a connection beats a thin
+    nonstop from a smaller city.
+  - **Asia, Gulf, and Oceania:** DEL / BOM (one pair of hubs among many, not a default), SIN,
+    KUL, BKK, HKG, DXB, AUH, DOH, SYD vs MEL, AKL. Compare a through-fare with two tickets via
+    a hub. See self-transfer warnings below.
 - **Open-jaw:** fly into one city and out of another when it saves money or backtracking.
 - **Separate tickets via hubs:** **self-transfer risks must be stated**: no protection if the
   first flight is late (missed connection = a new ticket), you must usually re-check bags, and
-  you may need a transit or entry visa for the hub (check the user's passport rules; some
-  nationalities need a visa even to airside-transit in places such as the UK, Canada, the US,
-  or certain Schengen airports). Leave at least 3-4 hours between flights, more for
+  you may need a transit or entry visa for the hub. That depends on the traveller's passport
+  and on whether they stay airside; do not assume any hub is visa-free or visa-required. Step 5
+  checks it from an official source. Leave at least 3-4 hours between flights, more for
   international-to-international with bags or a terminal change. Never present a self-transfer
   as equivalent to a protected connection.
 - **Cabin swaps:** check premium economy vs economy and business on points; the points gap is
@@ -191,23 +213,24 @@ research if there is no file):
 1. List the **transfer partners that can actually book this route**: the airline itself,
    alliance partners (Star Alliance, oneworld, SkyTeam), or other bookable partners. E.g. a
    United flight may be bookable with United MileagePlus and often via other Star Alliance
-   programmes (Aeroplan, Avianca LifeMiles, Air India's Maharaja Club, and so on). Verify
-   partner bookability on the programme's site. Do not assume a US, UK or India transfer list
-   applies to another region.
+   programmes (Aeroplan, Avianca LifeMiles, or another Star Alliance programme that actually
+   sells the seat). Verify partner bookability on the programme's site. Do not assume one
+   country's transfer list applies to a card issued somewhere else.
 2. For each candidate programme, **find the award price and availability on the programme's
    own website** (log-in may be needed; ask the user to check if you cannot). Record the miles
    needed, the cash taxes and fuel surcharges, and the source and time. Award charts and
    dynamic pricing change: never use a remembered price as fact.
 3. Compute, in the chosen currency:
    - `points_needed = ceil(award_miles × a / b)` for ratio `a:b` (card points : miles), rounded
-     up to the bank's transfer increment (minimums and multiples are in the card file; e.g.
-     HDFC: multiples of 100; Axis: minimum 500 EDGE Miles). Subtract any miles the user already
+     up to the bank's transfer increment (minimums and multiples are in that card's file; do not
+     reuse another issuer's increment). Subtract any miles the user already
      holds in that programme.
-   - `cash_saved = cash_fare - award_taxes_and_surcharges` (same passengers, same or similar
-     itinerary; say if the itinerary differs).
+   - `cash_saved = true_total_cash - award_taxes_and_surcharges` (same passengers, same or similar
+     itinerary; say if the itinerary differs). `true_total_cash` is the Step 4 total, not the
+     headline fare. If a fee on either side is unknown, say the comparison is incomplete.
    - `value_per_point = cash_saved / points_needed` in the chosen currency (or its minor units).
    - Compare with the card's **fixed-value alternative** when one exists (statement credit,
-     travel portal, or a fixed cents-per-point rate). If transferring beats it by little, prefer
+     travel portal, or a fixed value-per-point rate). If transferring beats it by little, prefer
      the simpler, reversible-until-booked option.
 4. Check and report **constraints**: monthly/annual caps and group caps, minimums, transfer
    fees, **transfer time** (seats can vanish while points are in transit; prefer instant or
@@ -218,18 +241,78 @@ research if there is no file):
    families, e.g. Avios between British Airways, Qatar and other Avios programmes, under each
    programme's current rules).
 
-## Step 4: Ranked answer
+## Step 4: True total cost
 
-Give one table, cheapest effective cost first. Include cash and points options together.
+Do this for every shortlisted cash option before you rank. The headline fare is not the price.
+
+1. Use the bag, seat, and change answers from Inputs. If any of those is missing and you can
+   still ask, ask once. If you cannot ask, leave those fee lines as **unknown**.
+2. For each option, add the fees this traveller would actually pay:
+   - checked bags and any extra cabin bag, at the weight they named
+   - seat selection (any seat / together / extra legroom)
+   - payment or card surcharges
+   - booking fees and other mandatory extras (airport check-in, under-seat-only upgrades)
+3. Read each figure on the **airline's official fee page** or on the **fare-brand details at
+   checkout**. Cite the page and the time. You may start from `fees/<airline>.yaml` when the
+   snapshot matches that airline and market and `last_checked` is within about 60 days, then
+   confirm it is still the current page. A different market, a stale file, a blog, or a memory
+   is **unverified** or **unknown**, never a silent number.
+4. **Rank by the true total** = base fare + those fee lines, in the chosen currency. Show the
+   base fare and each fee line, not only the sum. If a fee is unknown, show the partial total
+   and say it is incomplete. Do not pretend the unknown line is zero.
+5. **Flag budget carriers** (and any basic fare) where the headline omits bags or seats the
+   user needs. Compare fare brands on the same airline: if a standard brand that bundles the
+   bag and seat is cheaper than basic-plus-fees, recommend the bundle and show both totals.
+6. Award taxes and carrier surcharges count in the points true cost as well. A points option
+   is "points + cash taxes and fees", not "points" alone.
+
+## Step 5: Visas and transit
+
+Do this for every option you might recommend, including self-transfers and open-jaws. There is
+no default passport and no default "safe" hub.
+
+1. Use the passport nationality, and any residence permit or visa already held, for **each**
+   traveller. If two travellers differ, check both and keep the stricter result.
+2. For every layover airport and for the destination, answer:
+   - Is **airside transit** allowed without a visa?
+   - Is a **transit visa** required?
+   - Does a **self-transfer or separate ticket** (landside entry, baggage re-check, or a change
+     of airport) need an **entry visa** the airside connection would not?
+   - What does **destination entry** require (visa, eTA, ESTA, ETIAS, ETA, or a similar
+     authorisation; passport validity; onward ticket)?
+3. Sources, in this order: the destination or transit country's **official immigration or
+   embassy page**, then the **IATA Travel Centre** or a **Timatic-based** tool that an airline
+   exposes to the public. Cite the URL and the time. If those disagree or you cannot open them,
+   mark the cell **unverified** and tell the user to confirm with the airline or the embassy.
+   Never fill a visa cell from memory.
+4. In the ranked table, set **Visa / transit** to one of:
+   - **OK** — an official source says this traveller can transit and enter as planned
+   - **needs X** — name the visa or authorisation (for example "needs a transit visa for the
+     hub" or "needs an ETA before departure")
+   - **check** — you could not confirm it
+5. **Drop or demote** an option that needs a visa or authorisation the traveller cannot
+   realistically get before departure (no existing visa, a long lead time, or a landside
+   self-transfer they cannot enter). Say why, and keep a one-line note so they can see what
+   was removed. Do not drop an option merely because the cell is **check**; demote it below
+   options that are **OK** and say it is unconfirmed.
+
+## Step 6: Ranked answer
+
+Give one table, cheapest **true total** first. Include cash and points options together.
 Use the chosen currency. The rows below only show the format; **never reuse their numbers**.
+The route is one illustration. The same columns are used for any region.
 
-| # | Option | Pay with | Total cost | Value/pt | Duration | Stops | Caveats | Source |
-|---|---|---|---|---|---|---|---|---|
-| 1 | LHR-JFK, Airline XX..., 16 Dec | Cash | £850 | - | 8h25m | 0 | Bag fee may be extra | Google Flights, <date time TZ> |
-| 2 | LHR-JFK, Airline YY..., 16 Dec | 40,000 card pts -> 20,000 partner miles + £350 taxes | 40k pts + £350 | 1.25 pence/pt (unverified ratio) | 8h20m | 0 | Saver space must be re-checked on the partner site | partner site, <date time TZ> |
+| # | Option | Pay with | Base | Fee lines | True total | Value/pt | Duration | Stops | Visa / transit | Caveats | Source |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | MEX-MAD, Airline XX standard, 16 Dec | Cash | MXN 5100 | Bag included; seat included | MXN 5100 | - | 11h | 1 | OK (example label only) | Example only. Standard brand beat basic-plus-fees | airline fee page, <date time TZ> |
+| 2 | MEX-MAD, Airline XX basic, 16 Dec | Cash | MXN 4200 | Checked bag MXN 900; seat MXN 350 | MXN 5450 | - | 11h | 1 | OK (example label only) | Example only. Headline looks cheaper; flag it | airline fee page, <date time TZ> |
+| 3 | MEX-MAD, Airline YY, 16 Dec | 40,000 card pts -> 20,000 miles + MXN 2800 taxes | n/a | Award taxes MXN 2800 | 40k pts + MXN 2800 | MXN 0.0575/pt (unverified ratio) | 10h40m | 0 | check | Example only. Re-check saver space on the partner site | partner site, <date time TZ> |
 
-- "Total cost" for points options = points + cash taxes/fees (and transfer fees, if any).
-- Mark any unverified number inline with **(unverified)**.
+- "True total" for points = points + cash taxes, surcharges, and transfer fees.
+- A basic fare whose headline omits a bag or seat the user needs is flagged in Caveats.
+- Mark any unverified number inline with **(unverified)**. A visa cell is **OK** only with an
+  official source. The "OK" and "check" labels in the sample are format only, not a ruling.
+- If you removed an option because of a visa, say so under the table in one sentence.
 
 **Then always an Alternative dates table**, before the booking steps. One row per depart/return
 pair (on a one-way, leave Return as "—"). Columns: depart date, return date, cheapest price,
@@ -237,13 +320,14 @@ saving versus the **requested** dates (absolute and percent), airline and stops,
 trade-off (weekday vs weekend, red-eye, longer or shorter trip, extra overnight). Show the
 **top 3–5 cheaper** date options. If nothing in the window beat the requested dates, do not
 invent rows: write one plain sentence, for example "No date in the ±3 day window was cheaper
-than 16 Dec at £850." The rows below only show the format; **never reuse their numbers**.
+than 16 Dec at MXN 5100." The rows below only show the format; **never reuse their numbers**.
+Savings are against the requested dates' true total, not the headline fare.
 
-| Depart | Return | Cheapest | Saving vs requested dates | Airline / stops | Trade-off |
+| Depart | Return | Cheapest true total | Saving vs requested dates | Airline / stops | Trade-off |
 |---|---|---|---|---|---|
-| 14 Dec | — | £680 | £170 (20%) | Airline ZZ, 1 stop | Two days earlier; longer elapsed time |
-| 15 Dec | — | £765 | £85 (10%) | Airline XX, nonstop | Weekday; red-eye |
-| 18 Dec | — | £816 | £34 (4%) | Airline XX, nonstop | Two days later |
+| 14 Dec | — | MXN 4080 | MXN 1020 (20%) | Airline ZZ, 1 stop | Two days earlier; longer elapsed time |
+| 15 Dec | — | MXN 4590 | MXN 510 (10%) | Airline XX, nonstop | Weekday; red-eye |
+| 18 Dec | — | MXN 4845 | MXN 255 (5%) | Airline XX, nonstop | Two days later |
 
 If you checked award space, say when a nearby date has space the requested date does not (or
 clearly more of it), with the programme and the date you looked. If you did not check awards
@@ -259,7 +343,7 @@ Then give **exact steps for the top 1-3 picks**:
   credit (expected time); (5) book the award on the partner site; (6) pay taxes with a card.
   Say clearly: "Transfers are irreversible. I won't transfer or book anything until you say so."
 
-## Step 5: Alternatives
+## Step 7: Alternatives
 
 After the Alternative dates table, add a short **Alternatives** section for everything that is
 not another date: airports (including positioning hops and secondary airports), open-jaw,
@@ -267,7 +351,7 @@ separate tickets (with self-transfer and visa risks), other cabins (e.g. busines
 economy cash), rail-plus-air, and other airlines or programmes. Date changes belong in the
 Alternative dates table, not here. Give each option's saving vs the top pick and its trade-off.
 
-## Step 6 (optional): Price watch
+## Step 8 (optional): Price watch
 
 If the user wants alerts, offer to set up a recurring routine (using your platform's scheduler /
 routine feature) that:
@@ -284,7 +368,8 @@ Confirm the route, threshold, currency and schedule with the user before creatin
 
 ## Output checklist
 
-- [ ] Inputs confirmed (or defaults stated), including currency
+- [ ] Inputs confirmed, including currency, bags, seats, and whether changes or refunds matter.
+      No assumed passport. If you could not ask, missing fees are **unknown** and visas are **check**
 - [ ] Date flexibility was asked (fixed, ±1 day, ±3 days, ±1 week, a whole month, or weekends
       only), and the return was asked separately on a round trip. Exact dates only if the user
       said fixed. If you could not ask, the ±3 day default is stated in the answer
@@ -293,12 +378,19 @@ Confirm the route, threshold, currency and schedule with the user before creatin
 - [ ] Cash fares from your flight search tool first, then fallbacks; each with source + time
 - [ ] The flexibility window was scanned (`search.py --flex N`, Google Flights date grid / price
       graph, and/or Skyscanner month view). A wide window was sampled, not queried day by day
-- [ ] Alternate airports (and positioning hops, where relevant) checked
-- [ ] Points options: partner, ratio (verified?), points needed, taxes, value per point,
-      caps, fees, transfer time; award space checked on the partner's own site. Nearby dates
-      with better award space mentioned if that was checked
-- [ ] Ranked table, then an Alternative dates table (top 3–5 cheaper depart/return pairs with
-      absolute and percent savings, airline/stops, and trade-offs — or a plain sentence that
-      none were cheaper), then step-by-step instructions for the top picks
+- [ ] Alternate airports (and positioning hops, where relevant) checked, using the user's cities
+      rather than a default country
+- [ ] True total built from official fee lines (bag, seat, surcharges, booking fees). Base fare
+      and each fee shown. Unknown fees labelled unknown. Budget-carrier headlines flagged.
+      Fare brands compared when a bundle is cheaper
+- [ ] Visa / transit checked for every layover and the destination, from an official government
+      page or IATA Travel Centre / airline Timatic tool. Column is OK / needs X / check.
+      Options the traveller cannot enter or transit are dropped or demoted, with the reason
+- [ ] Points options: partner, ratio (verified?), points needed, taxes, value per point against
+      the true total, caps, fees, transfer time; award space checked on the partner's own site.
+      Nearby dates with better award space mentioned if that was checked
+- [ ] Ranked table by true total, then an Alternative dates table (top 3–5 cheaper depart/return
+      pairs with absolute and percent savings, airline/stops, and trade-offs — or a plain
+      sentence that none were cheaper), then step-by-step instructions for the top picks
 - [ ] Alternatives section (airports, cabins, split tickets, and other non-date options)
-- [ ] Clear statement that nothing was booked or transferred
+- [ ] Clear statement that nothing was booked, paid, or transferred

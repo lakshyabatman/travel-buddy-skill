@@ -1,0 +1,94 @@
+# Read on the airline's optional-charges page on 2026-11-25.
+# United States mainland table only. Hawaii interisland and partner-airline tickets differ;
+# those figures are on the same page and are not copied here.
+schema_version: 1
+airline: Southwest Airlines
+iata: WN
+region: "United States mainland (one published market, not a default origin)"
+currency: USD
+source_url: "https://www.southwest.com/html/customer-service/travel-fees.html"
+last_checked: 2026-11-25
+verified: true
+notes: >
+  Fees below are one-way unless noted. The page says Southwest may change them at any time.
+  Carry-on: one bag up to 10 x 16 x 24 inches plus one smaller personal item, free for every
+  ticketed passenger. Paid seat upgrades are USD 4-250 per segment per customer, and priority
+  boarding is USD 10-75 per segment per customer; the page does not split those ranges by fare
+  brand. A third or later checked bag is USD 150. Weight and size limits, elite status, and
+  credit-card bag benefits are on the same page and are not a substitute for the fare the
+  traveller actually holds.
+fare_brands:
+  - name: Basic
+    cabin_bag:
+      included: true
+      summary: "Carry-on plus personal item free (10 x 16 x 24 in carry-on)."
+    checked_bag:
+      included: false
+      amount: 45
+      currency: USD
+      per: "first bag, one-way; second bag USD 55"
+      summary: "First checked bag USD 45, second USD 55, each one-way."
+    seat_selection:
+      summary: "Paid seat upgrades USD 4-250 per segment per customer (page-level range, not Basic-only)."
+    changes:
+      amount: 0
+      currency: USD
+      summary: "Change fee USD 0, but a Basic fare can be changed only by upgrading to Choice, Choice Preferred, or Choice Extra (footnote 6)."
+    refunds:
+      amount: 0
+      currency: USD
+      summary: "Cancellation fee USD 0. If any segment is Basic, the page says cancellation has extra conditions (footnote 10). This is not a promise of a refund to the original card."
+  - name: Choice
+    cabin_bag:
+      included: true
+      summary: "Carry-on plus personal item free."
+    checked_bag:
+      included: false
+      amount: 45
+      currency: USD
+      per: "first bag, one-way; second bag USD 55"
+      summary: "First checked bag USD 45, second USD 55, each one-way."
+    changes:
+      amount: 0
+      currency: USD
+      summary: "Change fee USD 0; pay any fare difference (footnote 6)."
+    refunds:
+      amount: 0
+      currency: USD
+      summary: "Cancellation fee USD 0 (footnote 10)."
+  - name: Choice Preferred
+    cabin_bag:
+      included: true
+      summary: "Carry-on plus personal item free."
+    checked_bag:
+      included: false
+      amount: 45
+      currency: USD
+      per: "first bag, one-way; second bag USD 55"
+      summary: "First checked bag USD 45, second USD 55, each one-way."
+    changes:
+      amount: 0
+      currency: USD
+      summary: "Change fee USD 0; pay any fare difference (footnote 6)."
+    refunds:
+      amount: 0
+      currency: USD
+      summary: "Cancellation fee USD 0 (footnote 10)."
+  - name: Choice Extra
+    cabin_bag:
+      included: true
+      summary: "Carry-on plus personal item free."
+    checked_bag:
+      included: true
+      amount: 0
+      currency: USD
+      per: "first and second bag, one-way"
+      summary: "First and second checked bags free."
+    changes:
+      amount: 0
+      currency: USD
+      summary: "Change fee USD 0; pay any fare difference (footnote 6)."
+    refunds:
+      amount: 0
+      currency: USD
+      summary: "Cancellation fee USD 0 (footnote 10)."
