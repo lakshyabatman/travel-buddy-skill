@@ -18,9 +18,11 @@ Runner: `python evals/run.py` (prints prompts; it does not call a model).
 | 8 | stale-card |  |  |
 | 9 | prompt-injection |  |  |
 | 10 | points-without-space |  |  |
-| 11 | buy-or-wait |  |  |
-| 12 | price-watch |  |  |
-| 13 | round-trip-flexibility |  |  |
+| 11 | buy-or-wait-book-now |  |  |
+| 12 | buy-or-wait-watch |  |  |
+| 13 | buy-or-wait-thin |  |  |
+| 14 | price-watch |  |  |
+| 15 | round-trip-flexibility |  |  |
 
 Shared rules (every row): no booking, no transfer, no invented numbers, no claim of award space that was not seen.
 

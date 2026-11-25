@@ -33,6 +33,7 @@ def _block():
 class ExtractTests(unittest.TestCase):
     def test_graph_level_and_range(self):
         insight = history.extract_price_insight(_html(_block()))
+        self.assertEqual(insight["quote"], "prices are currently typical")
         self.assertEqual(insight["price_level"], "typical")
         self.assertEqual(insight["history_points"], 10)
         self.assertEqual(insight["insight_price"], 190)
@@ -45,15 +46,14 @@ class ExtractTests(unittest.TestCase):
         insight = history.extract_price_insight("<html><body>No flights widget</body></html>")
         self.assertEqual(insight["history"], [])
         self.assertIsNone(insight["price_level"])
+        self.assertIsNone(insight["quote"])
         self.assertIn("Do not invent", insight["history_note"])
 
-    def test_percentile_of_latest(self):
-        prices = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190]
-        pct = history.percentile_rank(190, prices)
-        self.assertGreater(pct, 90)
-        self.assertEqual(history.band_from_percentile(pct), "high")
-        self.assertEqual(history.band_from_percentile(10), "low")
-        self.assertEqual(history.band_from_percentile(50), "typical")
+    def test_quotes_other_google_phrases(self):
+        html = "<p>Prices are likely to increase and are less than usual.</p>"
+        quote = history.insight_quote(html)
+        self.assertIn("likely to increase", quote)
+        self.assertIn("less than usual", quote)
 
 
 class StoreTests(unittest.TestCase):
@@ -70,30 +70,24 @@ class StoreTests(unittest.TestCase):
                 "children": 0,
                 "currency": "EUR",
             }
-            history.record_observation({**base, "fetched_at": "2026-11-01T00:00:00+00:00", "price": 400, "source": "test", "google_history": []}, path)
-            graph = [{"date": "2026-11-0%d" % i, "price": 100 + i * 10, "at_ms": 0} for i in range(1, 10)]
-            graph.append({"date": "2026-11-10", "price": 190, "at_ms": 0})
+            history.record_observation({**base, "fetched_at": "2026-11-01T00:00:00+00:00", "price": 400, "source": "test"}, path)
             history.record_observation({
                 **base,
                 "fetched_at": "2026-11-25T00:00:00+00:00",
                 "price": 250,
                 "source": "test",
                 "google_price_level": "typical",
-                "google_insight_price": 190,
-                "google_range_low": 80,
-                "google_range_high": 200,
-                "google_history": graph,
             }, path)
             summary = history.summarize(base, path)
             self.assertEqual(summary["local_log"]["observations"], 2)
-            self.assertEqual(summary["local_log"]["min"], 250)
-            self.assertEqual(summary["local_log"]["max"], 400)
-            self.assertEqual(summary["google_graph"]["points"], 10)
-            self.assertEqual(summary["google_graph"]["latest"], 190)
-            self.assertEqual(summary["google_price_level"], "typical")
+            self.assertEqual(summary["local_log"]["first_seen"], "2026-11-01")
+            self.assertFalse(summary["local_log"]["enough"])
+            self.assertEqual(summary["google_quote"], "prices are currently typical")
+            self.assertEqual(summary["verdict"]["verdict"], "Watch")
             text = history.format_summary(summary)
-            self.assertIn("Not a forecast", text)
-            self.assertIn("typical", text)
+            self.assertIn("not enough history", text)
+            self.assertIn("This is not a forecast", text)
+            self.assertIn("2 observation", text)
 
     def test_empty_log(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -102,7 +96,35 @@ class StoreTests(unittest.TestCase):
                 "return_date": None, "cabin": "economy", "adults": 1, "children": 0, "currency": "EUR",
             }, Path(tmp) / "missing.jsonl")
             self.assertEqual(summary["local_log"]["observations"], 0)
-            self.assertEqual(summary["google_graph"]["points"], 0)
+            self.assertEqual(summary["verdict"]["verdict"], "Not enough data")
+
+
+class VerdictTests(unittest.TestCase):
+    def _local(self, n, span, prices):
+        return {"observations": n, "enough": n >= 5 and span >= 7, "new_low": False, "first_seen": "2026-11-01", "latest": prices[-1]}
+
+    def test_google_low_is_book_now(self):
+        verdict = history.cash_verdict("prices are currently low", self._local(0, 0, [0]))
+        self.assertEqual(verdict["verdict"], "Book now")
+
+    def test_likely_to_increase_is_book_now(self):
+        verdict = history.cash_verdict("likely to increase", self._local(1, 0, [10]))
+        self.assertEqual(verdict["verdict"], "Book now")
+
+    def test_typical_is_watch(self):
+        verdict = history.cash_verdict("prices are currently typical", self._local(1, 0, [10]))
+        self.assertEqual(verdict["verdict"], "Watch")
+
+    def test_thin_log_is_not_enough(self):
+        verdict = history.cash_verdict(None, self._local(2, 3, [10, 9]))
+        self.assertEqual(verdict["verdict"], "Not enough data")
+
+    def test_new_low_with_enough_data_is_book_now(self):
+        local = self._local(6, 10, [20, 18])
+        local["new_low"] = True
+        local["enough"] = True
+        verdict = history.cash_verdict(None, local)
+        self.assertEqual(verdict["verdict"], "Book now")
 
 
 if __name__ == "__main__":

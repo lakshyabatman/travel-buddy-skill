@@ -28,7 +28,8 @@ Use this for a simple ask ("cheap flight to X"). A weaker agent can stop here.
    the visa note in Catch is **check**.
 4. A points label appears only when a named card has a file and a transfer looks plausible.
    Do not claim a seat exists. If they did not ask for points, there is no points pick.
-5. Offer a deep dive for fee lines, visa sources, award links, and booking steps. No next-steps
+5. Add the one cash verdict (Book now, Watch, or Not enough data) and "this is not a forecast".
+   Offer a deep dive for fee lines, visa sources, award links, and booking steps. No next-steps
    block in quick mode. Never book or transfer.
 
 ## Full mode
@@ -123,8 +124,9 @@ Sample numbers in `docs/example.json` are fiction. Do not copy them.
 
 - **Cheapest:** lowest true total that is allowed to be a pick.
 - **Best trip:** fastest or fewest stops when the extra cost is small.
-- **Best use of points:** only if points were compared and a transfer may beat cash. No points
-  asked means no points pick. Never claim a seat you did not see.
+- **Best points value (check seat):** only if points were compared and a transfer may beat
+  cash. No points asked means no points pick. This is not the cash verdict. Never claim a
+  seat you did not see.
 
 Fewer than three is fine. Other dates are not picks when the user said **fixed**. A split
 ticket is not **Cheapest** unless they accepted a self-transfer.
@@ -149,15 +151,27 @@ until you say so."
 
 **4. Sources.** A numbered list: site or tool, URL, and the time you read it.
 
-### Buy now or wait?
+### Cash verdict
 
-A hint, not a forecast. Use only a Google price-history graph extracted from the search
-response, the on-page "prices are currently low/typical/high" sentence, the low/high pair
-beside that graph, the local log (`python history.py ORIG DEST DATE`), and days until
-departure as a general pattern. Google's word and a percentile of the graph can disagree;
-report both and the number of points. If the graph is missing, say so and point them at the
-Price insights panel in the browser. Do not invent past prices. Kayak advice and a Skyscanner
-month grid are not a history of this date. State how thin the evidence is.
+Every fare answer has exactly one of these. It is not the points pick.
+
+Quote Google's own words when the page has them ("prices are currently low", "prices are
+currently typical", "unlikely to drop", "likely to increase", "less than usual", and the
+same kind of line). Add Google's caveat that future prices may not behave as expected. Do
+not score the graph yourself.
+
+The only history this project owns is `history.jsonl` and `watch.py`. Always say how many
+observations that route has and the first-seen date. Fewer than 5 observations, or a span
+under 7 days, is **not enough history**. Do not print min, median, or a percentile then.
+
+- **Book now** when Google says low, less than usual, unlikely to drop, or likely to
+  increase, or when the local log has enough history and the latest fare is a new low.
+- **Watch** when Google says typical or the signals are mixed. Offer `watch.py`.
+- **Not enough data** when there is no Google insight and the local log is thin.
+
+Give the reason, then "this is not a forecast". Do not invent a Google sentence. If the
+insight is missing, say so and point at the Price insights panel. A Kayak line or a
+Skyscanner month grid is not this verdict.
 
 ### Price watch
 
@@ -178,5 +192,5 @@ records a baseline unless the fare is already under the threshold. Never book.
 - [ ] Other dates are inside that table; if none were cheaper, one sentence says so. Fixed dates are never a pick
 - [ ] A split ticket's Catch says unprotected self-transfer, and it is not Cheapest unless they accepted that
 - [ ] Award link or programme URL, plus the 30-second checklist, if a points pick was made
-- [ ] Buy-or-wait uses real evidence only and says it is not a forecast
+- [ ] Exactly one cash verdict, Book now, Watch, or Not enough data, with the reason and "this is not a forecast"
 - [ ] Nothing was booked, paid, or transferred

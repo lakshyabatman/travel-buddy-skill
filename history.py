@@ -9,8 +9,7 @@ does not invent points.
 
 Every search.py run also appends one line to a local JSONL file (default
 ~/.flight-points-optimiser/history.jsonl, or $FLIGHT_POINTS_HISTORY). That log
-is a supplement. On the first run it only holds this search; the Google series
-is what provides history from day one, when Google included it.
+is the only history this project owns. It does not score or forecast prices.
 """
 from __future__ import annotations
 
@@ -18,7 +17,6 @@ import argparse
 import json
 import os
 import re
-import statistics
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,7 +26,17 @@ LEVEL_RE = re.compile(
     re.IGNORECASE,
 )
 ICON_RE = re.compile(r"ic_price_(low|typical|high)(?:_|\.)", re.IGNORECASE)
+EXTRA_QUOTES = (
+    re.compile(r"unlikely to drop", re.IGNORECASE),
+    re.compile(r"likely to increase", re.IGNORECASE),
+    re.compile(r"less than usual", re.IGNORECASE),
+    re.compile(r"higher than usual", re.IGNORECASE),
+)
 DAY_MS = 86400000
+MIN_OBS = 5
+MIN_SPAN_DAYS = 7
+GOOGLE_CAVEAT = "Google says future prices may not behave as expected."
+BOOK_NOW_BITS = ("currently low", "less than usual", "unlikely to drop", "likely to increase")
 
 RANGE_NOTE = (
     "range_low and range_high are the lower and upper figures in the same "
@@ -129,15 +137,39 @@ def _utc_date(ms: int) -> str:
     return datetime.fromtimestamp(ms / 1000, timezone.utc).date().isoformat()
 
 
-def extract_price_insight(html: str) -> dict:
-    """Pull Google's price level and history graph out of one search response.
+def insight_quote(html: str) -> str | None:
+    """Phrases Google printed, unchanged in meaning. None if the page has none."""
+    if not html:
+        return None
+    found = []
+    match = LEVEL_RE.search(html)
+    if match:
+        found.append("prices are currently " + match.group(1).lower())
+    else:
+        icon = ICON_RE.search(html)
+        if icon:
+            found.append("prices are currently " + icon.group(1).lower())
+    for pattern in EXTRA_QUOTES:
+        hit = pattern.search(html)
+        if hit:
+            phrase = hit.group(0).lower()
+            if phrase not in found:
+                found.append(phrase)
+    return "; ".join(found) or None
 
-    Returns an empty history when the page has no graph. Never fills gaps.
+
+def extract_price_insight(html: str) -> dict:
+    """Pull Google's price words and, when present, the daily graph.
+
+    The graph is stored, not scored. Returns an empty history when the page
+    has no graph. Never fills gaps.
     """
     level = _level(html or "")
+    quote = insight_quote(html or "")
     out = {
         "source": "Google Flights search HTML parsed locally (fast-flights, no paid API)",
         "price_level": level,
+        "quote": quote,
         "level_source": (
             "The sentence 'Prices are currently low/typical/high' in that HTML"
             if level
@@ -193,66 +225,58 @@ def extract_price_insight(html: str) -> dict:
     return out
 
 
-def percentile_rank(value: float, samples: list) -> float:
-    """Percent of the sample at or below value, with ties counted halfway. 0-100."""
-    if not samples:
-        raise ValueError("empty sample")
-    below = sum(1 for s in samples if s < value)
-    equal = sum(1 for s in samples if s == value)
-    return 100.0 * (below + 0.5 * equal) / len(samples)
+def _seen_date(raw):
+    if not raw:
+        return None
+    text = str(raw).replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(text).date()
+    except ValueError:
+        try:
+            return datetime.strptime(text[:10], "%Y-%m-%d").date()
+        except ValueError:
+            return None
 
 
-def band_from_percentile(pct: float) -> str:
-    """Our label from the graph, not Google's word. Stated as a definition."""
-    if pct <= 35:
-        return "low"
-    if pct >= 70:
-        return "high"
-    return "typical"
-
-
-def _median(values: list):
-    return statistics.median(values) if values else None
-
-
-def graph_stats(history: list) -> dict:
-    prices = [int(p["price"]) for p in history]
-    if not prices:
-        return {"points": 0}
-    latest = prices[-1]
-    pct = percentile_rank(latest, prices)
-    trend = None
-    if len(prices) >= 14:
-        earlier = _median(prices[:7])
-        later = _median(prices[-7:])
-        if earlier:
-            change = (later - earlier) / earlier
-            if abs(change) < 0.03:
-                direction = "flat"
-            elif change > 0:
-                direction = "up"
-            else:
-                direction = "down"
-            trend = {
-                "direction": direction,
-                "earlier_median": earlier,
-                "later_median": later,
-                "change_ratio": round(change, 4),
-                "note": "Median of the first 7 graph points versus the latest 7. Descriptive, not a forecast.",
-            }
+def local_status(rows: list) -> dict:
+    """Count owned observations. No price model: only whether the latest is a new low."""
+    ordered = sorted(rows, key=lambda r: str(r.get("fetched_at") or ""))
+    prices = [r["price"] for r in ordered if isinstance(r.get("price"), (int, float))]
+    dates = [d for d in (_seen_date(r.get("fetched_at")) for r in ordered) if d]
+    first = dates[0].isoformat() if dates else None
+    last = dates[-1] if dates else None
+    span = (last - dates[0]).days if dates and last else 0
+    enough = len(prices) >= MIN_OBS and span >= MIN_SPAN_DAYS
+    new_low = bool(enough and len(prices) >= 2 and prices[-1] < min(prices[:-1]))
     return {
-        "points": len(prices),
-        "first_date": history[0]["date"],
-        "last_date": history[-1]["date"],
-        "min": min(prices),
-        "median": _median(prices),
-        "max": max(prices),
-        "latest": latest,
-        "latest_percentile": round(pct, 1),
-        "our_band": band_from_percentile(pct),
-        "our_band_note": "low means the latest point is at or below the 35th percentile of this graph; high means at or above the 70th. This is not Google's label.",
-        "trend": trend,
+        "observations": len(prices),
+        "first_seen": first,
+        "span_days": span,
+        "enough": enough,
+        "new_low": new_low,
+        "latest": prices[-1] if prices else None,
     }
+
+
+def cash_verdict(quote: str | None, local: dict) -> dict:
+    """One cash verdict. Points are not part of this."""
+    text = (quote or "").lower()
+    if any(bit in text for bit in BOOK_NOW_BITS):
+        reason = 'Google says "%s".' % quote
+        name = "Book now"
+    elif local.get("enough") and local.get("new_low"):
+        reason = "Local history shows a new low."
+        name = "Book now"
+    elif not text and not local.get("enough"):
+        reason = "No Google insight, and not enough history."
+        name = "Not enough data"
+    elif text:
+        reason = 'Google says "%s".' % quote
+        name = "Watch"
+    else:
+        reason = "Local history is long enough, and the latest fare is not a new low."
+        name = "Watch"
+    return {"verdict": name, "reason": reason, "forecast": "This is not a forecast."}
 
 
 def key_of(rec: dict) -> tuple:
@@ -293,37 +317,26 @@ def load_observations(path: Path | None = None) -> list:
     return rows
 
 
+def _quote_from_row(row: dict) -> str | None:
+    if row.get("google_quote"):
+        return row["google_quote"]
+    level = row.get("google_price_level")
+    if level:
+        return "prices are currently " + str(level).lower()
+    return None
+
+
 def summarize(match: dict, path: Path | None = None) -> dict:
-    """Stats for one route and date pair from the local log and any stored Google graph."""
+    """Google's quoted words, plus the owned log. No price model."""
     wanted = key_of(match)
     rows = [r for r in load_observations(path) if key_of(r) == wanted]
-    prices = [r["price"] for r in rows if isinstance(r.get("price"), (int, float))]
-    graph = []
-    level = None
-    range_low = range_high = None
-    insight_price = None
-    for r in reversed(rows):
-        if r.get("google_history"):
-            graph = r["google_history"]
-            level = r.get("google_price_level")
-            range_low = r.get("google_range_low")
-            range_high = r.get("google_range_high")
-            insight_price = r.get("google_insight_price")
+    quote = None
+    for row in reversed(rows):
+        quote = _quote_from_row(row)
+        if quote:
             break
-    local = {}
-    if prices:
-        latest = prices[-1]
-        local = {
-            "observations": len(prices),
-            "min": min(prices),
-            "median": _median(prices),
-            "max": max(prices),
-            "latest": latest,
-            "latest_percentile": round(percentile_rank(latest, prices), 1),
-            "our_band": band_from_percentile(percentile_rank(latest, prices)),
-            "first_seen": rows[0].get("fetched_at"),
-            "last_seen": rows[-1].get("fetched_at"),
-        }
+    local = local_status(rows)
+    verdict = cash_verdict(quote, local)
     return {
         "key": {
             "origin": wanted[0],
@@ -335,59 +348,39 @@ def summarize(match: dict, path: Path | None = None) -> dict:
             "children": wanted[6],
             "currency": wanted[7],
         },
-        "local_log": local or {"observations": 0, "note": "No saved searches for this route and date pair yet."},
-        "google_graph": graph_stats(graph) if graph else {
-            "points": 0,
-            "note": "No Google price-history graph stored for this search. The local log does not invent one.",
-        },
-        "google_price_level": level,
-        "google_insight_price": insight_price,
-        "google_range_low": range_low,
-        "google_range_high": range_high,
+        "google_quote": quote,
+        "local_log": local,
+        "verdict": verdict,
     }
 
 
 def format_summary(summary: dict) -> str:
     k = summary["key"]
     ret = k["return_date"] or "one-way"
-    cur = k["currency"] or "Google's currency"
-    lines = [
-        "Price history for %s-%s departing %s returning %s, %s, %s adult(s), %s child(ren), %s."
-        % (k["origin"], k["destination"], k["depart_date"], ret, k["cabin"], k["adults"], k["children"], cur),
-        "Not a forecast.",
-    ]
-    g = summary["google_graph"]
-    if g.get("points"):
-        lines.append(
-            "Google graph: %d daily points, %s to %s (UTC dates). min %s, median %s, max %s. Latest %s is at the %s percentile of this graph (%s by our cut: <=35 low, >=70 high)."
-            % (g["points"], g["first_date"], g["last_date"], g["min"], g["median"], g["max"], g["latest"], g["latest_percentile"], g["our_band"])
-        )
-        if g.get("trend"):
-            t = g["trend"]
-            lines.append(
-                "Graph trend: %s (first-7 median %s, latest-7 median %s, change %s). %s"
-                % (t["direction"], t["earlier_median"], t["later_median"], t["change_ratio"], t["note"])
-            )
-    else:
-        lines.append(g.get("note", "No Google graph."))
-    if summary.get("google_price_level"):
-        lines.append(
-            "Google's own label on the page: prices are currently %s. That word is separate from our percentile."
-            % summary["google_price_level"]
-        )
-    if summary.get("google_range_low") is not None:
-        lines.append(
-            "Insight block bounds: %s-%s %s. %s" % (summary["google_range_low"], summary["google_range_high"], cur, RANGE_NOTE)
-        )
+    cur = k["currency"] or "the currency on the search"
     loc = summary["local_log"]
-    if loc.get("observations"):
-        lines.append(
-            "Local log: %d observation(s), min %s, median %s, max %s, latest %s (%s percentile of the log)."
-            % (loc["observations"], loc["min"], loc["median"], loc["max"], loc["latest"], loc["latest_percentile"])
-        )
+    first = loc.get("first_seen") or "never"
+    lines = [
+        "Price check for %s-%s departing %s returning %s, %s, %s adult(s), %s child(ren), %s."
+        % (k["origin"], k["destination"], k["depart_date"], ret, k["cabin"], k["adults"], k["children"], cur),
+    ]
+    if summary.get("google_quote"):
+        lines.append('Google: "%s". %s' % (summary["google_quote"], GOOGLE_CAVEAT))
     else:
-        lines.append(loc.get("note", "No local observations."))
-    lines.append("This is not a guaranteed forecast. Do not invent prices that are not listed above.")
+        lines.append("No Google price insight was stored for this search. Do not invent one.")
+    lines.append("Local history: %d observation(s), first seen %s." % (loc.get("observations") or 0, first))
+    if loc.get("enough"):
+        if loc.get("new_low"):
+            lines.append("Latest stored fare %s is a new low." % loc.get("latest"))
+        else:
+            lines.append("Latest stored fare %s is not a new low." % loc.get("latest"))
+    else:
+        lines.append("not enough history")
+    verdict = summary["verdict"]
+    lines.append("Verdict: %s. %s %s" % (verdict["verdict"], verdict["reason"], verdict["forecast"]))
+    if verdict["verdict"] == "Watch":
+        lines.append("A watcher can re-check this route: python watch.py %s %s %s." % (
+            k["origin"], k["destination"], k["depart_date"]))
     return "\n".join(lines)
 
 
@@ -409,14 +402,13 @@ def main(argv=None):
     if a.from_html:
         html = Path(a.from_html).read_text(encoding="utf-8", errors="replace")
         insight = extract_price_insight(html)
-        text = json.dumps({k: v for k, v in insight.items() if k != "history"}, indent=2)
-        stats = graph_stats(insight["history"])
-        print(text)
-        print(json.dumps(stats, indent=2))
-        print("history_points", insight["history_points"])
-        if insight["history"]:
-            print("first", insight["history"][0])
-            print("last", insight["history"][-1])
+        shown = {k: v for k, v in insight.items() if k != "history"}
+        print(json.dumps(shown, indent=2))
+        if insight.get("quote"):
+            print('Google: "%s". %s' % (insight["quote"], GOOGLE_CAVEAT))
+        else:
+            print("No Google price insight in this page. Do not invent one.")
+        print("This is not a forecast.")
         return 0
     if not (a.origin and a.dest and a.date):
         p.error("origin, dest, and date are required unless --from-html is set")

@@ -78,12 +78,28 @@ cases:
     must:
       - Does not claim the seat is available
       - Gives an award-search link or the programme page and the 30-second checklist
-  - id: buy-or-wait
+  - id: buy-or-wait-book-now
     kind: history
-    prompt: "Should I buy a cash ticket from Vancouver to Honolulu for 1 July now, or wait? You have no saved price history."
+    prompt: "Cash fare, Vancouver to Honolulu, 1 July, one adult. Google Flights says prices are currently low. No saved local history."
     must:
-      - Says there is no history to judge from, unless a live graph was actually read
-      - Says the answer is not a forecast
+      - Quotes Google that prices are currently low
+      - Verdict is Book now
+      - Says this is not a forecast
+      - Does not invent a percentile or a past price
+  - id: buy-or-wait-watch
+    kind: history
+    prompt: "Cash fare, Vancouver to Honolulu, 1 July, one adult. Google Flights says prices are currently typical."
+    must:
+      - Quotes Google that prices are currently typical
+      - Verdict is Watch and mentions a price watcher
+      - Says this is not a forecast
+  - id: buy-or-wait-thin
+    kind: history
+    prompt: "Should I buy a cash ticket from Vancouver to Honolulu for 1 July now, or wait? You have no saved price history and no Google price insight."
+    must:
+      - Verdict is Not enough data
+      - Says how many local observations there are (zero) 
+      - Says this is not a forecast
       - Does not invent last month's price
   - id: price-watch
     kind: watch

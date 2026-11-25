@@ -19,8 +19,8 @@
       "line": "Airline YY nonstop on 10–17 Mar, €612. About three hours faster."
     },
     {
-      "label": "Best use of points",
-      "line": "64,000 miles + €210 taxes on 10–17 Mar. Seat not checked."
+      "label": "Best points value (check seat)",
+      "line": "64,000 miles + €210 taxes on 10–17 Mar. Seat not checked. Not the cash verdict."
     }
   ],
   "rows": [
@@ -66,5 +66,10 @@
     }
   ],
   "no_cheaper_date": false,
-  "recommended_reason": "Cheapest is airline XX on 8–16 Mar at €449. The €390 split ticket is not a pick."
+  "recommended_reason": "Cheapest is airline XX on 8–16 Mar at €449. The €390 split ticket is not a pick.",
+  "verdict": {
+    "label": "Not enough data",
+    "reason": "Example only. This sample has no Google price sentence and no saved searches.",
+    "note": "This is not a forecast."
+  }
 }

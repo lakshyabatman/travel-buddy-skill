@@ -1,6 +1,6 @@
 # Evals
 
-`cases.yaml` holds 13 prompts and the behaviour each one should show. They are generic.
+`cases.yaml` holds 15 prompts and the behaviour each one should show. They are generic.
 They are not a personal trip.
 
 Before a release:
