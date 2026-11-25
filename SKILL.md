@@ -363,6 +363,10 @@ routine feature) that:
   (optionally, when award space opens on a named programme, if checkable);
 - includes in each alert the new price, the previous low, source link, and timestamp;
 - never books or transfers anything, and stops after the travel date or when the user says.
+- On a machine with cron, `python watch.py ORIG DEST YYYY-MM-DD --currency XXX --threshold N`
+  re-runs the optional scraper, appends to the price history, and exits 2 only on a new low
+  or a fare at or below the threshold. The first run stores a baseline and stays quiet unless
+  the fare is already at or below the threshold. Exit 0 after the departure date.
 
 Confirm the route, threshold, currency and schedule with the user before creating it.
 
