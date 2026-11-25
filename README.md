@@ -127,7 +127,10 @@ python scripts/validate_cards.py
 
 The script checks every `cards/*.yaml` against `schemas/cards.schema.json` and every
 `fees/*.yaml` against `schemas/fees.schema.json`, and warns when `last_checked` is more than 60
-days old. GitHub Actions runs this plus a `search.py` smoke test (see `.github/workflows/ci.yml`).
+days old. GitHub Actions runs this plus the unit tests and a `search.py` smoke test
+(see `.github/workflows/ci.yml`). A weekly job lists stale or unverified entries in an issue.
+
+Before a release, run `python evals/run.py` and fill in `evals/SCORE.md`. See `evals/README.md`.
 
 ## Disclaimer
 

@@ -19,6 +19,10 @@ jobs:
         run: python scripts/validate_cards.py
       - name: Check docs coverage table is current
         run: python scripts/build_docs.py --check
+      - name: Unit tests and eval file
+        run: |
+          python -m unittest discover -s tests -q
+          python evals/run.py --check
       - name: search.py CLI smoke
         run: python search.py --help
       - name: Live Google Flights smoke test
