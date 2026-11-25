@@ -23,7 +23,7 @@ It tells your AI agent how to:
 - compare each card's transfer partners using `cards/<country>.yaml`: points needed, taxes,
   value per point, caps, fees, transfer times (and research the issuer live if that country or
   card has no file yet);
-- lead with up to three picks, then one table of cash, points, other dates, and other airports;
+- lead with up to three picks (Cheapest, Best trip, Best points value (check seat)), then one table of cash, points, other dates, and other airports;
 - optionally set up a price-watch routine that alerts only on real drops.
 
 It **never books, pays, or transfers points** without your explicit go-ahead, and it must cite a
@@ -100,8 +100,13 @@ Notes:
 `search.py` is an optional, unofficial scraper. The skill works without it. When a search
 response contains Google's price-history graph, the script stores that graph plus the fare in
 `~/.flight-points-optimiser/history.jsonl` (override with `--history` or
-`$FLIGHT_POINTS_HISTORY`). `python history.py ORIG DEST YYYY-MM-DD` prints min, median, max,
-and where the latest point sits. If the graph is missing, it says so. That is not a forecast.
+`$FLIGHT_POINTS_HISTORY`). The directory is mode 0700 and the file is mode 0600. It stores
+the route, dates, cabin, passenger counts, currency, and price. It does not store names,
+passport numbers, or card numbers. `python history.py ORIG DEST YYYY-MM-DD` prints min,
+median, max, and where the latest point sits. If the graph is missing, it says so. That is
+not a forecast. `watch.py` keeps the same kind of record in
+`~/.flight-points-optimiser/watch-ORIGIN-DEST-DATE.json`. Both names are gitignored if a
+run is pointed at this repo.
 
 ## Docs site
 

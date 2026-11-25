@@ -15,19 +15,31 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
 
+import inputs
+
 ROOT = Path(__file__).resolve().parent
+SEARCH_TIMEOUT_S = 300
 
 
 def state_path(origin, dest, depart, explicit):
     if explicit:
-        return Path(explicit).expanduser()
-    safe = "%s-%s-%s" % (origin, dest, depart)
-    return Path.home() / ".flight-points-optimiser" / ("watch-%s.json" % safe)
+        path = inputs.normalize_data_path(explicit, (".json",))
+        if not path.name.startswith("watch"):
+            raise ValueError("state file name must start with watch")
+        return path
+    origin = inputs.iata(origin, "origin")
+    dest = inputs.iata(dest, "destination")
+    depart = inputs.iso_date(depart, "departure date").isoformat()
+    return inputs.normalize_data_path(
+        Path.home() / ".flight-points-optimiser" / ("watch-%s-%s-%s.json" % (origin, dest, depart)),
+        (".json",),
+    )
 
 
 def decide(previous_lowest, last_alert_price, price, threshold):
@@ -52,12 +64,15 @@ def cheapest(payload):
 
 
 def load_state(path: Path):
-    if not path.is_file():
+    if not path.is_file() or path.is_symlink():
         return {}
+    if path.stat().st_size > 1_000_000:
+        raise ValueError("state file is larger than 1MB")
     try:
-        return json.loads(path.read_text())
+        data = json.loads(path.read_text())
     except json.JSONDecodeError:
         return {}
+    return data if isinstance(data, dict) else {}
 
 
 def main(argv=None):
@@ -76,28 +91,47 @@ def main(argv=None):
     p.add_argument("--history", help="Passed through to search.py")
     a = p.parse_args(argv)
 
-    origin, dest = a.origin.upper(), a.dest.upper()
     try:
-        depart = date.fromisoformat(a.date)
-    except ValueError:
-        print("Departure date must be YYYY-MM-DD", file=sys.stderr)
+        origin = inputs.iata(a.origin, "origin")
+        dest = inputs.iata(a.dest, "destination")
+        depart = inputs.iso_date(a.date, "departure date")
+        ret = inputs.iso_date(a.ret, "return date").isoformat() if a.ret else None
+        cabin = inputs.cabin(a.cabin)
+        adults = inputs.bounded_int(a.adults, "--adults", None, 1, 9)
+        children = inputs.bounded_int(a.children, "--children", None, 0, 9)
+        flex = inputs.bounded_int(a.flex, "--flex", None, 0, 7)
+        cur = inputs.currency(a.currency)
+        if a.threshold is not None and not math.isfinite(a.threshold):
+            raise ValueError("threshold must be a finite number")
+        if a.history:
+            inputs.normalize_data_path(a.history, (".jsonl",))
+        path = state_path(origin, dest, depart.isoformat(), a.state)
+    except ValueError as exc:
+        print(inputs.one_line(exc), file=sys.stderr)
         return 1
     if depart < date.today():
-        print("STOP departure date %s has passed. No search, no booking." % a.date)
+        print("STOP departure date %s has passed. No search, no booking." % depart.isoformat())
         return 0
 
-    cmd = [sys.executable, str(ROOT / "search.py"), origin, dest, a.date, "--json-only", "--top", "5",
-           "--cabin", a.cabin, "--adults", str(a.adults), "--children", str(a.children), "--flex", str(a.flex)]
-    if a.ret:
-        cmd += ["--return", a.ret]
-    if a.currency:
-        cmd += ["--currency", a.currency]
+    cmd = [sys.executable, str(ROOT / "search.py"), origin, dest, depart.isoformat(), "--json-only", "--top", "5",
+           "--cabin", cabin, "--adults", str(adults), "--children", str(children), "--flex", str(flex)]
+    if ret:
+        cmd += ["--return", ret]
+    if cur:
+        cmd += ["--currency", cur]
     if a.history:
         cmd += ["--history", a.history]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=SEARCH_TIMEOUT_S, shell=False)
+    except subprocess.TimeoutExpired:
+        print("search timed out", file=sys.stderr)
+        return 1
     if proc.returncode not in (0, 2):
-        err = (proc.stderr or proc.stdout or "search failed").strip()
-        print(err, file=sys.stderr)
+        err = proc.stderr or proc.stdout or "search failed"
+        print(inputs.one_line(err), file=sys.stderr)
+        return 1
+    if len(proc.stdout) > 5_000_000:
+        print("search output was too large", file=sys.stderr)
         return 1
     try:
         payload = json.loads(proc.stdout)
@@ -109,38 +143,53 @@ def main(argv=None):
         print("No fare returned. Not treated as a price drop.", file=sys.stderr)
         return 1
 
-    path = state_path(origin, dest, a.date, a.state)
-    state = load_state(path)
+    try:
+        state = load_state(path)
+    except ValueError as exc:
+        print(inputs.one_line(exc), file=sys.stderr)
+        return 1
+    if state.get("origin") not in (None, origin) or state.get("destination") not in (None, dest):
+        print("State file is for a different route; refusing to overwrite.", file=sys.stderr)
+        return 1
     prev = (state.get("lowest") or {}).get("price")
+    if isinstance(prev, bool) or not isinstance(prev, (int, float)):
+        prev = None
     last_alert = state.get("last_alert_price")
     alert, reason = decide(prev, last_alert, row["price"], a.threshold)
     now = datetime.now().astimezone().isoformat(timespec="seconds")
     lowest = row["price"] if prev is None else min(prev, row["price"])
-    state.update({
+    seen_at = now if lowest == row["price"] or prev is None else (state.get("lowest") or {}).get("seen_at", now)
+    fresh = {
         "origin": origin,
         "destination": dest,
-        "depart_date": a.date,
-        "return_date": a.ret,
-        "currency": a.currency,
-        "cabin": a.cabin,
-        "adults": a.adults,
-        "children": a.children,
-        "lowest": {"price": lowest, "seen_at": now if lowest == row["price"] or prev is None else state.get("lowest", {}).get("seen_at", now), "source": "Google Flights via fast-flights"},
+        "depart_date": depart.isoformat(),
+        "return_date": ret,
+        "currency": cur,
+        "cabin": cabin,
+        "adults": adults,
+        "children": children,
+        "lowest": {"price": lowest, "seen_at": seen_at, "source": "Google Flights via fast-flights"},
         "checks": int(state.get("checks") or 0) + 1,
         "last_checked": now,
         "last_price": row["price"],
-    })
+    }
     if alert:
-        state["last_alert_price"] = row["price"]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(state, indent=2) + "\n")
+        fresh["last_alert_price"] = row["price"]
+    elif state.get("last_alert_price") is not None:
+        fresh["last_alert_price"] = state.get("last_alert_price")
+    try:
+        stored = inputs.prepare_data_file(path, (".json",))
+        inputs.write_private_text(stored, json.dumps(fresh, indent=2) + "\n")
+    except ValueError as exc:
+        print("State was not saved: %s" % inputs.one_line(exc), file=sys.stderr)
+        return 1
 
-    cur = a.currency or "the currency Google chose"
+    label = cur or "the currency Google chose"
     if alert:
         print("ALERT %s %s-%s %s: %s %s (%s). Previous low %s. Nothing was booked or transferred." % (
-            reason, origin, dest, a.date, row["price"], cur, prev if prev is not None else "none", prev))
+            reason, origin, dest, depart.isoformat(), row["price"], label, prev if prev is not None else "none", prev))
         return 2
-    print("OK %s-%s %s: %s %s. Lowest stored %s. No alert." % (origin, dest, a.date, row["price"], cur, lowest))
+    print("OK %s-%s %s: %s %s. Lowest stored %s. No alert." % (origin, dest, depart.isoformat(), row["price"], label, lowest))
     return 0
 
 

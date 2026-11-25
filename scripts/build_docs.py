@@ -18,13 +18,18 @@ START = "<!-- COVERAGE:START -->"
 END = "<!-- COVERAGE:END -->"
 
 
+class NoAliasLoader(yaml.SafeLoader):
+    def ignore_aliases(self, _data):
+        return True
+
+
 def coverage_html() -> str:
     rows = []
-    files = sorted(CARDS_DIR.glob("*.yaml"))
+    files = sorted(p for p in CARDS_DIR.glob("*.yaml") if not p.is_symlink())
     if not files:
         return "<p>No card files found.</p>"
     for path in files:
-        doc = yaml.safe_load(path.read_text())
+        doc = yaml.load(path.read_text(), Loader=NoAliasLoader)
         country = doc.get("country") or path.stem
         code = doc.get("country_code") or ""
         label = f"{country} ({code})" if code else country

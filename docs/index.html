@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-k8QodkDVmztCIQCapr2kRX3X/MXdJk25A8Kjl6H2JVM='; style-src 'unsafe-inline'; img-src 'self' https://media.tenor.com; connect-src 'self'; font-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>Flight Points Optimiser</title>
   <meta name="description" content="An agent skill that finds the cheapest way to fly from anywhere, paying cash or with transferable credit-card points, without paid flight APIs.">
   <link rel="canonical" href="https://lakshyabatman.github.io/travel-buddy-skill/">
@@ -88,7 +89,7 @@
           <ul id="hero-picks">
             <li><strong>Cheapest.</strong> Airline XX, 8–16 Mar, €449. One day longer and a red-eye.</li>
             <li><strong>Best trip.</strong> Airline YY nonstop on 10–17 Mar, €612.</li>
-            <li><strong>Best use of points.</strong> 64,000 miles + €210. Seat not checked.</li>
+            <li><strong>Best points value (check seat).</strong> 64,000 miles + €210. Seat not checked.</li>
           </ul>
           <p class="pick" id="hero-pick">Cheapest is airline XX on 8–16 Mar at €449. The €390 split ticket is not a pick.</p>
         </div>
@@ -99,7 +100,7 @@
             width="480"
             loading="lazy"
             decoding="async">
-          <figcaption><a href="https://tenor.com/view/cat-pilot-plane-gif-12937843866617883977">GIF via Tenor</a></figcaption>
+          <figcaption><a href="https://tenor.com/view/cat-pilot-plane-gif-12937843866617883977" rel="noopener noreferrer">GIF via Tenor</a></figcaption>
         </figure>
       </div>
     </section>
@@ -119,7 +120,7 @@
 
     <section>
       <h2>Install</h2>
-      <p>Clone the repo, then use the install script or paste a prompt. The repository is <a href="https://github.com/lakshyabatman/travel-buddy-skill">lakshyabatman/travel-buddy-skill</a>; the skill is <code>flight-points-optimiser</code>. This page is published at <a href="https://lakshyabatman.github.io/travel-buddy-skill/">lakshyabatman.github.io/travel-buddy-skill</a>.</p>
+      <p>Clone the repo, then use the install script or paste a prompt. The repository is <a href="https://github.com/lakshyabatman/travel-buddy-skill" rel="noopener noreferrer">lakshyabatman/travel-buddy-skill</a>; the skill is <code>flight-points-optimiser</code>. This page is published at <a href="https://lakshyabatman.github.io/travel-buddy-skill/" rel="noopener noreferrer">lakshyabatman.github.io/travel-buddy-skill</a>.</p>
       <pre>git clone https://github.com/lakshyabatman/travel-buddy-skill
 cd travel-buddy-skill
 chmod +x scripts/install.sh</pre>
@@ -147,7 +148,7 @@ chmod +x scripts/install.sh</pre>
       <ul>
         <li><strong>Cheapest.</strong> Airline XX, 8–16 Mar, €449. One day longer and a red-eye.</li>
         <li><strong>Best trip.</strong> Airline YY nonstop, 10–17 Mar, €612.</li>
-        <li><strong>Best use of points.</strong> 64,000 miles + €210. Seat not checked.</li>
+        <li><strong>Best points value (check seat).</strong> 64,000 miles + €210. Seat not checked.</li>
       </ul>
       <table class="example">
         <thead>
@@ -232,7 +233,7 @@ chmod +x scripts/install.sh</pre>
     }).catch(function () {});
   </script>
   <footer>
-    <p>MIT License · Copyright © 2026 Lakshya · <code>SKILL.md</code> is the source of truth. · <a href="https://github.com/lakshyabatman/travel-buddy-skill">github.com/lakshyabatman/travel-buddy-skill</a></p>
+    <p>MIT License · Copyright © 2026 Lakshya · <code>SKILL.md</code> is the source of truth. · <a href="https://github.com/lakshyabatman/travel-buddy-skill" rel="noopener noreferrer">github.com/lakshyabatman/travel-buddy-skill</a></p>
   </footer>
 </body>
 </html>

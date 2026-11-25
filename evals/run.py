@@ -20,8 +20,13 @@ CASES = Path(__file__).resolve().parent / "cases.yaml"
 REQUIRED = ("id", "kind", "prompt", "must")
 
 
+class NoAliasLoader(yaml.SafeLoader):
+    def ignore_aliases(self, _data):
+        return True
+
+
 def load():
-    doc = yaml.safe_load(CASES.read_text())
+    doc = yaml.load(CASES.read_text(), Loader=NoAliasLoader)
     if not isinstance(doc, dict) or not isinstance(doc.get("cases"), list):
         raise SystemExit("evals/cases.yaml needs a cases list")
     ids = []
