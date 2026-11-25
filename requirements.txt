@@ -1,0 +1,7 @@
+# search.py
+fast-flights>=3.1,<4
+# fast-flights 3.1.0 imports typing_extensions but does not declare it
+typing_extensions>=4.0
+# card files, validation, docs table
+pyyaml>=6.0
+jsonschema>=4.0

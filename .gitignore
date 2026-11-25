@@ -1,0 +1,23 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+*.log
+out*.json
+.DS_Store
+.idea/
+.vscode/
+# installed local copies of the skill (install.sh --project from inside this repo is a no-op we don't commit)
+# keep the adapter README files; ignore copied skill payloads if someone runs --project here
+.claude/skills/flight-points-optimiser/SKILL.md
+.claude/skills/flight-points-optimiser/cards/
+.claude/skills/flight-points-optimiser/search.py
+.claude/skills/flight-points-optimiser/requirements.txt
+.claude/skills/flight-points-optimiser/prompts/
+.cursor/skills/flight-points-optimiser/SKILL.md
+.cursor/skills/flight-points-optimiser/cards/
+.cursor/skills/flight-points-optimiser/search.py
+.cursor/skills/flight-points-optimiser/requirements.txt
+.cursor/skills/flight-points-optimiser/prompts/

@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/lakshyabatman/travel-buddy-skill/schemas/cards.schema.json",
+  "title": "Flight Points Optimiser card file",
+  "type": "object",
+  "required": ["schema_version", "table_last_checked", "programs", "cards"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "country": { "type": "string", "minLength": 1 },
+    "country_code": { "type": "string", "pattern": "^[A-Z]{2}$" },
+    "table_last_checked": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "currency_note": { "type": "string" },
+    "programs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/program" }
+    },
+    "cards": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/card" }
+    }
+  },
+  "$defs": {
+    "iso_date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "ratio": { "type": "string", "pattern": "^[0-9]+:[0-9]+$" },
+    "partner": {
+      "type": "object",
+      "required": ["name", "ratio", "verified", "last_checked"],
+      "additionalProperties": true,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "type": "string" },
+        "alliance": { "type": "string" },
+        "group": { "type": ["string", "null"] },
+        "ratio": { "$ref": "#/$defs/ratio" },
+        "transfer_time": { "type": ["string", "null"] },
+        "min_transfer": { "type": ["string", "null"] },
+        "verified": { "type": "boolean" },
+        "last_checked": { "$ref": "#/$defs/iso_date" },
+        "source_url": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "program": {
+      "type": "object",
+      "required": ["issuer", "currency_name", "partners"],
+      "additionalProperties": true,
+      "properties": {
+        "issuer": { "type": "string" },
+        "currency_name": { "type": "string" },
+        "transfer_portal": { "type": "string" },
+        "min_transfer": { "type": ["string", "null"] },
+        "reversible": { "type": "boolean" },
+        "general_sources": { "type": "array", "items": { "type": "string" } },
+        "partners_source_url": { "type": "string" },
+        "partners": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/partner" }
+        },
+        "removed_partners": { "type": "array", "items": { "type": "object" } },
+        "fees": { "type": ["object", "string", "null"] }
+      }
+    },
+    "card": {
+      "type": "object",
+      "required": ["id", "name", "program", "last_checked", "verified", "source_url"],
+      "additionalProperties": true,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "program": { "type": "string" },
+        "caps": { "type": ["object", "string", "null"] },
+        "fees": { "type": ["object", "string", "null"] },
+        "notes": { "type": "string" },
+        "source_url": { "type": "string", "minLength": 1 },
+        "last_checked": { "$ref": "#/$defs/iso_date" },
+        "verified": { "type": "boolean" }
+      }
+    }
+  }
+}

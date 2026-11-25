@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Validate card files
+        run: python scripts/validate_cards.py
+      - name: Check docs coverage table is current
+        run: python scripts/build_docs.py --check
+      - name: search.py CLI smoke
+        run: python search.py --help
+      - name: Live Google Flights smoke test
+        # The unofficial scraper can be blocked or break; do not fail the whole CI on that.
+        continue-on-error: true
+        run: |
+          DATE=$(python -c "from datetime import date,timedelta; print((date.today()+timedelta(days=21)).isoformat())")
+          python search.py LHR JFK "$DATE" --currency GBP --top 3

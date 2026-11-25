@@ -1,0 +1,290 @@
+# cards.yaml - Indian credit-card points -> airline/hotel transfer table
+#
+# READ THIS FIRST
+# - Ratios are written "card points : partner points". "2:1" = 2 card points give 1 mile.
+#   "1:2" = 1 card point gives 2 miles. points_needed = ceil(award_miles * a / b) for ratio "a:b".
+# - verified: true  -> the number was read on an OFFICIAL page (the bank/issuer, or the
+#                      partner programme's own page about this bank) on last_checked.
+#   verified: false -> only found on blogs/aggregators, or the official page is old or behind a
+#                      login. Treat as a lead, NOT a fact. Confirm in the bank portal before moving points.
+# - Banks add and drop partners without notice (2024-2026 saw several overnight removals and
+#   ratio cuts). If last_checked is more than ~60 days old, re-verify before relying on it.
+# - null = we could not find it. Never fill a null with a guess.
+# - Transfers are almost always IRREVERSIBLE. Check award space on the partner site first.
+#
+# See CONTRIBUTING.md for how to add or refresh a card batch.
+
+schema_version: 1
+country: India
+country_code: IN
+table_last_checked: 2026-11-25
+currency_note: "Caps and fees in INR. 1,50,000 = 150,000 (Indian digit grouping)."
+
+programs:
+
+  # ---------------------------------------------------------------------------
+  hdfc_reward_points:
+    issuer: HDFC Bank
+    currency_name: Reward Points (RP)
+    transfer_portal: "HDFC SmartBuy > Privileges > select card > Miles Transfer (https://offers.smartbuy.hdfcbank.com)"
+    portal_note: >-
+      The SmartBuy miles-transfer page (offers.smartbuy.hdfcbank.com / offers.reward360.in) needs a
+      card login, so HDFC's full live partner/ratio table could not be read on 2026-11-25. Ratios
+      below are verified only where HDFC's own documents or the partner's official HDFC page state them.
+    min_transfer: "100 RP, in multiples of 100 (Air India's official HDFC page; SmartBuy offer T&Cs)"
+    reversible: false
+    general_sources:
+      - https://www.hdfc.bank.in/credit-cards/infinia-credit-card
+      - https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/infinia-credit-card/rewards-points-program-terms-and-conditions.pdf
+      - https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/claim-rewards/rewards-redemption-form.pdf
+    # Ratios below apply to Infinia / Infinia Metal and Diners Club Black / Black Metal.
+    partners:
+      - {name: Singapore Airlines KrisFlyer, type: airline, alliance: Star Alliance, ratio: "1:1",
+         transfer_time: "5-7 working days (HDFC redemption form; SmartBuy may be faster, unverified)",
+         verified: true, last_checked: 2026-11-25,
+         source_url: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/claim-rewards/rewards-redemption-form.pdf",
+         notes: "HDFC form: 'Infinia / Diners Black ... 100RP = 100 AirMiles' (KrisFlyer)."}
+      - {name: Air India Maharaja Club, type: airline, alliance: Star Alliance, ratio: "2:1",
+         transfer_time: "2-4 working days", verified: true, last_checked: 2026-11-25,
+         source_url: "https://www.airindia.com/in/en/maharaja-club/partner-offers/hdfc-bank-credit-cards.html",
+         notes: "Partner's official page. Regalia Gold is 3:1."}
+      - {name: Cathay Asia Miles, type: airline, alliance: oneworld, ratio: "2:1",
+         transfer_time: null, verified: true, last_checked: 2026-11-25,
+         source_url: "https://www.cathaypacific.com/cx/en_IN/our-partners/hdfc-bank.html",
+         notes: "Partner's official page: 100 RP = 50 Asia Miles (Infinia, Diners Black)."}
+      - {name: Turkish Airlines Miles&Smiles, type: airline, alliance: Star Alliance, ratio: "2:1",
+         transfer_time: null, verified: true, last_checked: 2026-11-25,
+         source_url: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/infinia-credit-card/rewards-points-program-terms-and-conditions.pdf",
+         notes: "HDFC T&C: effective 15 Jan 2024, 2 RP = 1 point for Turkish, Accor and Avianca."}
+      - {name: Avianca LifeMiles, type: airline, alliance: Star Alliance, ratio: "2:1",
+         transfer_time: null, verified: true, last_checked: 2026-11-25,
+         source_url: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/infinia-credit-card/rewards-points-program-terms-and-conditions.pdf",
+         notes: "Same HDFC T&C clause as Turkish."}
+      - {name: Accor Live Limitless (ALL), type: hotel, ratio: "2:1",
+         transfer_time: null, verified: true, last_checked: 2026-11-25,
+         source_url: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/infinia-credit-card/rewards-points-program-terms-and-conditions.pdf",
+         notes: "Same HDFC T&C clause as Turkish."}
+      - {name: Etihad Guest, type: airline, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25,
+         source_url: "https://offers.reward360.in/infinia/miles_transfer/bonus_offer",
+         notes: "Official SmartBuy offer page, but dated Dec 2024 ('existing transfer value 1 RP = 0.5'). Not re-confirmed for 2026."}
+      - {name: AirAsia rewards, type: airline, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25,
+         source_url: "https://offers.reward360.in/infinia/miles_transfer/bonus_offer",
+         notes: "Official SmartBuy offer page dated Dec 2024. Not re-confirmed for 2026."}
+      - {name: Air France-KLM Flying Blue, type: airline, alliance: SkyTeam, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/",
+         notes: "Blog (Aug 2026). Several blogs agree; official table behind login."}
+      - {name: Finnair Plus (Avios), type: airline, alliance: oneworld, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/",
+         notes: "Blog. Finnair Avios can be moved to British Airways / Qatar Avios on the Avios site; check current Finnair rules."}
+      - {name: Vietnam Airlines Lotusmiles, type: airline, alliance: SkyTeam, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: SpiceJet SpiceClub, type: airline, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/",
+         notes: "Blog. SpiceClub's official HDFC page (https://spiceclub.spicejet.com/HDFCConvert) confirms the partnership but shows no ratio."}
+      - {name: British Airways Club (Avios), type: airline, alliance: oneworld, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: Qatar Airways Privilege Club (Avios), type: airline, alliance: oneworld, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: United MileagePlus, type: airline, alliance: Star Alliance, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: Air Canada Aeroplan, type: airline, alliance: Star Alliance, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: Thai Airways Royal Orchid Plus, type: airline, alliance: Star Alliance, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: Marriott Bonvoy, type: hotel, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: IHG One Rewards, type: hotel, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: Radisson Rewards, type: hotel, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: Wyndham Rewards, type: hotel, ratio: "1:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", notes: "Blog."}
+      - {name: Club ITC, type: hotel, ratio: "2:1", transfer_time: null,
+         verified: false, last_checked: 2026-11-25, source_url: "https://cardadvisor.in/articles/hdfc-reward-points-transfer-guide", notes: "Blog."}
+
+  # ---------------------------------------------------------------------------
+  axis_edge_miles:
+    issuer: Axis Bank
+    currency_name: EDGE Miles
+    transfer_portal: "Axis Mobile app > EDGE Miles dashboard, or https://traveledge.axis.bank.in > Points/Miles Transfer"
+    min_transfer: "500 EDGE Miles (https://www.axis.bank.in/miles-transfer)"
+    reversible: false
+    general_sources:
+      - https://traveledge.axis.bank.in/travel/common/termsandcondition
+      - https://www.axis.bank.in/miles-transfer
+      - https://www.axis.bank.in/cards/credit-card/axis-bank-atlas-credit-card
+    groups_note: >-
+      Partners are in Group A or Group B. Annual caps (1 Jan-31 Dec, per customer ID) are shared
+      across ALL partners in a group. Axis says groups and partners can change without notice.
+    linking_rules: >-
+      One loyalty ID per partner at a time; changing it needs a 60-day wait; after linking, wait
+      5 working days before the first transfer. Name on card must match the loyalty account.
+    # Ratios below are the ATLAS column of the official Travel EDGE table (read 2026-11-25).
+    partners:
+      # Group A
+      - {name: Air Canada Aeroplan, group: A, type: airline, alliance: Star Alliance, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air France-KLM Flying Blue, group: A, type: airline, alliance: SkyTeam, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Air India Maharaja Club, group: A, type: airline, alliance: Star Alliance, ratio: "1:2", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Ethiopian ShebaMiles, group: A, type: airline, alliance: Star Alliance, ratio: "1:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Etihad Guest, group: A, type: airline, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: JAL Mileage Bank, group: A, type: airline, alliance: oneworld, ratio: "1:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Qantas Frequent Flyer, group: A, type: airline, alliance: oneworld, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Singapore Airlines KrisFlyer, group: A, type: airline, alliance: Star Alliance, ratio: "1:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: Thai Airways Royal Orchid Plus, group: A, type: airline, alliance: Star Alliance, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Turkish Airlines Miles&Smiles, group: A, type: airline, alliance: Star Alliance, ratio: "1:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: United MileagePlus, group: A, type: airline, alliance: Star Alliance, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Wyndham Rewards, group: A, type: hotel, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: British Airways Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25,
+         notes: "Reduced tier (was 1:2 on older partners). 4x worse than the standard Atlas ratio."}
+      - {name: Qatar Airways Privilege Club (Avios), group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25,
+         notes: "Removed Apr 2026, returned Jul 2026 at the reduced 2:1 (per blogs; current ratio is official)."}
+      - {name: Cathay Asia Miles, group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Finnair Plus (Avios), group: A, type: airline, alliance: oneworld, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Vietnam Airlines Lotusmiles, group: A, type: airline, alliance: SkyTeam, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Accor Live Limitless (ALL), group: A, type: hotel, ratio: "2:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25,
+         notes: "Returned in 2026 at 2:1 (was 1:2). Accor's own Axis page may still show the old ratio; Axis table wins."}
+      # Group B
+      - {name: AirAsia rewards, group: B, type: airline, ratio: "1:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: SpiceJet SpiceClub, group: B, type: airline, ratio: "1:2", transfer_time: "up to 10 working days", verified: true, last_checked: 2026-11-25}
+      - {name: IndiGo BluChip, group: B, type: airline, ratio: "2:1", transfer_time: "up to 1-2 working days", verified: true, last_checked: 2026-11-25,
+         notes: "Standard 2:1. Axis also lists a 2-month introductory offer at 1:2 for Atlas, withdrawable without notice; launch date not stated, so check the portal."}
+      - {name: Lufthansa Group Miles & More, group: B, type: airline, alliance: Star Alliance, ratio: "1:1", transfer_time: "up to 5 working days", verified: true, last_checked: 2026-11-25,
+         notes: "Extra partner cap: max 2,00,000 M&M miles per calendar year; min 3,000 M&M miles per transfer."}
+      - {name: Hilton Honors, group: B, type: hotel, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: IHG One Rewards, group: B, type: hotel, ratio: "1:2", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Radisson Rewards, group: B, type: hotel, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: Orchid Rewards, group: B, type: hotel, ratio: "1:1", transfer_time: "up to 1 working day", verified: true, last_checked: 2026-11-25}
+      - {name: The Postcard Sunshine Club, group: B, type: hotel, ratio: "1:2", transfer_time: "up to 2 working days", verified: true, last_checked: 2026-11-25}
+      - {name: IOCL XTRAREWARDS, group: null, type: fuel, ratio: "3:10", transfer_time: null, verified: true, last_checked: 2026-11-25,
+         notes: "Listed for Atlas only; not useful for flights."}
+    removed_partners:
+      - {name: Marriott Bonvoy, removed: "2026 (Apr per blogs; still not in the official Group A/B list on 2026-11-25)", notes: "A Marriott row still appears in the official conversion-ratio table (the Atlas cell in that row is 2:1, but neighbouring columns do not follow the usual card pattern). Marriott is omitted from the official Group A / Group B list (left in an HTML comment). Do not treat it as a live transfer partner or use that 2:1 figure until the logged-in Travel EDGE portal clearly offers it."}
+      - {name: Club ITC, removed: "2026 (per blogs)", notes: "Not in the live Axis table on 2026-11-25."}
+    partners_source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+
+  # ---------------------------------------------------------------------------
+  amex_india_mr:
+    issuer: American Express Banking Corp. (India)
+    currency_name: Membership Rewards (MR) points
+    transfer_portal: "americanexpress.co.in login > Rewards > Transfer Points (needs login)"
+    portal_note: >-
+      Amex India's partner table is only shown after login, so NO ratio below could be read on an
+      official Amex page on 2026-11-25. All are verified: false. The public global page
+      (global.americanexpress.com/rewards/transfer?country=IN) served US data to our script.
+    linking_rules: >-
+      Register your frequent-flyer number with Amex first (Membership Services helpline); allow up to
+      14 days for verification, then transfer online. (Official: https://www.americanexpress.com/in/benefits/)
+    reversible: false
+    general_sources:
+      - https://www.americanexpress.com/in/benefits/
+      - https://www.americanexpress.com/in/benefits/membership-rewards/
+    partners:
+      - {name: Singapore Airlines KrisFlyer, type: airline, alliance: Star Alliance, ratio: "2:1", min_transfer: "800 MR", transfer_time: "up to 48 hours (as quoted by blogs from the Amex page)",
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointswallah.com/guides/amex-transfer-partners-india", notes: "Blogs (Nov 2026) agree."}
+      - {name: Cathay Asia Miles, type: airline, alliance: oneworld, ratio: "2:1", min_transfer: "800 MR", transfer_time: "up to 48 hours (blogs)",
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointswallah.com/guides/amex-transfer-partners-india", notes: "Blog."}
+      - {name: British Airways Club (Avios), type: airline, alliance: oneworld, ratio: "2:1", min_transfer: "1,200 MR", transfer_time: "up to 48 hours (blogs)",
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointswallah.com/guides/amex-transfer-partners-india", notes: "Blog."}
+      - {name: Qatar Airways Privilege Club (Avios), type: airline, alliance: oneworld, ratio: "2:1", min_transfer: "500 MR", transfer_time: "up to 48 hours (blogs)",
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointswallah.com/guides/amex-transfer-partners-india", notes: "Blog."}
+      - {name: Virgin Atlantic Flying Club, type: airline, ratio: "5:4", min_transfer: "800 MR", transfer_time: "up to 48 hours (blogs)",
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsorcash.app/programs/amex-india",
+         notes: "Blogs say it improved from 2:1 to 5:4 on 2026-08-18 with no Amex announcement; may be an unlabelled promo."}
+      - {name: Marriott Bonvoy, type: hotel, ratio: "1:1", min_transfer: "100 MR, multiples of 100", transfer_time: "up to 48 hours (blogs)",
+         verified: false, last_checked: 2026-11-25, source_url: "https://www.americanexpress.com/content/dam/amex/en-in/benefits/marriottrewardpointsTnCs.pdf",
+         notes: "Official Amex India document, but it is a Nov-Dec 2023 bonus-offer T&C (1:1; max 900,000 points per transaction or calendar year). Blogs confirm 1:1 in Nov 2026."}
+      - {name: Hilton Honors, type: hotel, ratio: "2:3", min_transfer: "1,000 MR", transfer_time: "up to 48 hours (blogs)",
+         verified: false, last_checked: 2026-11-25, source_url: "https://pointsorcash.app/programs/amex-india",
+         notes: "Blogs say it changed from 10:9 to 2:3 on 2026-08-18."}
+    removed_partners:
+      - {name: Emirates Skywards, removed: "2025-05-27 (per blog)", source_url: "https://getbrief.cards/amex-transfer-partners"}
+    fees: {value: null, note: "No transfer fee found in official or blog sources (unverified)."}
+
+cards:
+
+  - id: hdfc_infinia
+    name: HDFC Bank Infinia / Infinia Metal Edition
+    program: hdfc_reward_points
+    ratio_note: "Partner ratios as in programs.hdfc_reward_points (best HDFC tier)."
+    caps:
+      monthly: "1,50,000 RP per calendar month, shared across SmartBuy flights, hotels and airmiles transfers"
+      monthly_verified: true
+      redemptions_per_month: "Max 5 redemptions per month from 1 Feb 2026 (reported by Business Standard citing HDFC's website; not found on an HDFC page by us)"
+      redemptions_per_month_verified: false
+      redemptions_per_month_source: https://www.business-standard.com/finance/personal-finance/hdfc-bank-changes-terms-for-infinia-card-customers-what-to-expect-126013000728_1.html
+    fees: "Rs 99 + tax redemption fee is waived for Infinia (HDFC redemption form). SmartBuy transfer fee: none stated (unverified)."
+    fees_verified: true
+    alt_redemption: "SmartBuy flights/hotels at Rs 1 per RP (up to 70% of booking value) - compare against transfers."
+    notes: "Points lapse if the card is unused for 365 days (Business Standard). Invite-only card."
+    source_url: https://www.hdfc.bank.in/credit-cards/infinia-credit-card
+    last_checked: 2026-11-25
+    verified: true   # caps and core terms verified; see each partner for ratio status
+
+  - id: hdfc_diners_black
+    name: HDFC Bank Diners Club Black / Diners Club Black Metal Edition
+    program: hdfc_reward_points
+    ratio_note: "Same partner ratios as Infinia (HDFC Air India and Cathay pages list both cards at 2:1)."
+    caps:
+      monthly: "75,000 RP per calendar month for SmartBuy flights, hotels and airmiles transfer"
+      monthly_verified: true
+      monthly_sources:
+        - https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/personal-banking/discover-products/cards/credit-cards/diners-club-black-metal-edition-credit-card/diners6.pdf
+        - https://offers.reward360.in/miles_transfer/bonus_offer
+    fees: "Rs 99 + tax redemption fee waived for Diners Black (HDFC redemption form)."
+    fees_verified: true
+    alt_redemption: "SmartBuy flights/hotels at Rs 1 per RP, up to 70% of booking value."
+    notes: "Reward points valid 3 years from accrual (diners6.pdf). Diners acceptance abroad is patchy, but transfers are unaffected."
+    source_url: https://www.hdfc.bank.in/credit-cards/diners-club-black-metal-edition-credit-card
+    last_checked: 2026-11-25
+    verified: true
+
+  - id: axis_atlas
+    name: Axis Bank Atlas
+    program: axis_edge_miles
+    caps:
+      annual_total: "1,50,000 EDGE Miles per customer ID per calendar year"
+      annual_group_a: "30,000 EDGE Miles (shared by ALL Group A partners)"
+      annual_group_b: "1,20,000 EDGE Miles (shared by ALL Group B partners)"
+      multi_card_rule: "Atlas + Reserve: caps add up. Atlas + Olympus (both EDGE Miles): the higher Olympus cap applies to both combined."
+      verified: true
+    fees:
+      value: null
+      note: "No transfer fee in Axis's official transfer T&Cs. One aggregator reports Rs 199 + GST per transfer (https://travelwith.cc/transfers/to/asia-miles) - unverified; check the portal."
+    alt_redemption: "Travel EDGE bookings with EDGE Miles (value per mile not re-verified here)."
+    notes: >-
+      2026 devaluation: Accor, BA, Cathay, Finnair, Qatar and Vietnam sit on a reduced 2:1 Atlas tier
+      (standard tier is 1:2), and Marriott and Club ITC are gone. With the 30,000 Group A cap, Atlas can
+      move at most 60,000 standard Group A miles (e.g. KrisFlyer) or 15,000 Avios a year.
+      Axis updated Atlas card T&Cs effective 20 June 2025 (product page).
+    source_url: https://traveledge.axis.bank.in/travel/common/termsandcondition
+    last_checked: 2026-11-25
+    verified: true
+
+  - id: amex_india_mr
+    name: "American Express India Membership Rewards (Platinum Charge, Platinum Travel, Gold Charge; also MRCC / Platinum Reserve / SmartEarn)"
+    program: amex_india_mr
+    caps:
+      value: "Marriott: max 900,000 MR per transaction or calendar year (2023 official doc). No other caps found."
+      verified: false
+    fees: {value: null, note: "None found (unverified)."}
+    notes: >-
+      Amex India's public Platinum Travel page (read 2026-11-25) says Amex is "temporarily pausing the
+      acceptance of new card applications in India" - existing cardholders are unaffected as far as we can tell.
+    source_url: https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/
+    last_checked: 2026-11-25
+    verified: false
+
+# ---------------------------------------------------------------------------
+# BACKLOG (not covered in v1; contributions welcome - see CONTRIBUTING.md)
+# - Axis Magnus / Reserve / Olympus / Burgundy Private (EDGE Reward Points / EDGE Miles; same Axis
+#   table, different columns - e.g. Reserve/Magnus are 5:2 standard and 5:1 reduced on 2026-11-25)
+# - ICICI Emeralde Private Metal
+# - SBI Card Elite / Aurum / Miles
+# - HSBC Premier / TravelOne
+# - AU Small Finance Bank Zenith+
+# - Standard Chartered (Ultimate / Beyond)
+# - HDFC Regalia Gold, Biz Black
+# - Kotak (White Reserve / Solitaire), IDFC First (Mayura / Ashva), Yes Bank Marquee
+# ---------------------------------------------------------------------------

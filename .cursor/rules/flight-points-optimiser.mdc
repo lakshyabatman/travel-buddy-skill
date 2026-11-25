@@ -1,0 +1,12 @@
+---
+description: Cheapest flights worldwide, cash vs transferable credit-card points and airline miles, no paid flight APIs.
+alwaysApply: false
+---
+
+When the user wants the cheapest flight between two places (or "anywhere"), a cash-vs-points
+comparison, flexible-date or nearby-airport alternatives, or a price-watch on a route, load and
+follow the repository's `SKILL.md` (Flight Points Optimiser). It is the source of truth.
+
+Also load the matching `cards/<country>.yaml` when one exists. Never book, pay, or transfer
+points without explicit go-ahead for that exact action. Never invent fares, award prices, or
+ratios; cite a source for every number and label unverified figures.

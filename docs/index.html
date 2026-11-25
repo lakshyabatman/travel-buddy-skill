@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flight Points Optimiser</title>
+  <meta name="description" content="An agent skill that finds the cheapest way to fly from anywhere, paying cash or with transferable credit-card points, without paid flight APIs.">
+  <link rel="canonical" href="https://lakshyabatman.github.io/travel-buddy-skill/">
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --ink: #1b1b18;
+      --muted: #5c5a55;
+      --line: #d9d3c8;
+      --card: #fffcf7;
+      --accent: #0b5fff;
+      --warn-bg: #fff4d6;
+      --warn-ink: #5c4300;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.55;
+    }
+    header, main, footer { width: min(920px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 56px 0 24px; }
+    header p.eyebrow { letter-spacing: .12em; text-transform: uppercase; font-size: 12px; color: var(--muted); margin: 0 0 12px; }
+    h1 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; margin: 0 0 12px; }
+    .lede { font-size: 1.15rem; color: var(--muted); max-width: 40rem; }
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 28px 28px 24px; margin: 0 0 20px; }
+    h2 { margin: 0 0 12px; font-size: 1.25rem; }
+    h3 { margin: 20px 0 8px; font-size: 1rem; }
+    ul, ol { margin: 0; padding-left: 1.2rem; }
+    li + li { margin-top: 6px; }
+    a { color: var(--accent); }
+    code, pre { font-family: "IBM Plex Mono", "ui-monospace", Menlo, monospace; font-size: .9em; }
+    pre { background: #1b1b18; color: #f6f3ee; padding: 14px 16px; border-radius: 10px; overflow-x: auto; }
+    .banner {
+      background: var(--warn-bg);
+      color: var(--warn-ink);
+      border: 1px solid #e8c96a;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-weight: 600;
+      margin: 0 0 16px;
+    }
+    table.coverage { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    table.coverage th, table.coverage td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    table.coverage th { font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 650; }
+    table.example { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    table.example th, table.example td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); }
+    .muted { color: var(--muted); }
+    footer { padding: 12px 0 48px; color: var(--muted); font-size: .92rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="eyebrow">Agent skill · MIT license</p>
+    <h1>Flight Points Optimiser</h1>
+    <p class="lede">Find the cheapest way to fly from anywhere, paying cash or with transferable credit-card points and airline miles. No paid flight APIs. The skill never books or transfers points unless you say so.</p>
+  </header>
+  <main>
+    <section>
+      <h2>What it does</h2>
+      <ul>
+        <li>Searches cash fares first with the agent’s built-in flight search, then Google Flights, Skyscanner, Kayak, the airline’s own site, or the bundled <code>search.py</code>.</li>
+        <li>Tries flexible dates, nearby and secondary airports, positioning hops, open-jaw itineraries, rail plus air, and separate tickets via hubs — and spells out self-transfer and visa risks.</li>
+        <li>Compares award tickets using a per-country transfer table (<code>cards/india.yaml</code> in v1). If your country or card isn’t in a file yet, the agent researches the issuer’s official page and labels figures unverified.</li>
+        <li>Returns a ranked table with exact transfer and booking steps, plus alternatives, and can set a price-watch that alerts only when the fare actually drops.</li>
+      </ul>
+      <p class="muted">Source of truth: <code>SKILL.md</code>. Every fare and ratio must cite a source. Transfers are almost always irreversible.</p>
+    </section>
+
+    <section>
+      <h2>Install</h2>
+      <p>Clone the repo, then use the install script or paste a prompt. The repository is <a href="https://github.com/lakshyabatman/travel-buddy-skill">lakshyabatman/travel-buddy-skill</a>; the skill is <code>flight-points-optimiser</code>. This page is published at <a href="https://lakshyabatman.github.io/travel-buddy-skill/">lakshyabatman.github.io/travel-buddy-skill</a>.</p>
+      <pre>git clone https://github.com/lakshyabatman/travel-buddy-skill
+cd travel-buddy-skill
+chmod +x scripts/install.sh</pre>
+
+      <h3>Claude Code</h3>
+      <pre>./scripts/install.sh --claude-code</pre>
+      <p class="muted">Copies the skill to <code>~/.claude/skills/flight-points-optimiser/</code>. In a project: <code>./scripts/install.sh --project</code>.</p>
+
+      <h3>Cursor</h3>
+      <pre>./scripts/install.sh --cursor</pre>
+      <p class="muted">Copies the skill to <code>~/.cursor/skills/flight-points-optimiser/</code>. This repo also ships a Cursor rule at <code>.cursor/rules/flight-points-optimiser.mdc</code> that points at <code>SKILL.md</code>.</p>
+
+      <h3>Codex and other AGENTS.md readers</h3>
+      <p>When you work inside this repository, <code>AGENTS.md</code> already points at <code>SKILL.md</code>. To use it in another repo (copies the skill in and adds a relative pointer to <code>AGENTS.md</code>):</p>
+      <pre>./scripts/install.sh --agents --project-dir /path/to/other-repo</pre>
+
+      <h3>Any LLM</h3>
+      <p>Open <code>prompts/any-llm.md</code>, paste it into the chat, and attach a card file if you have one. No skills folder required.</p>
+    </section>
+
+    <section>
+      <h2>Example output</h2>
+      <p class="banner">This is a fictional example for illustration only. Do not use these fares, taxes, or ratios to book or transfer points.</p>
+      <p>A typical answer is a ranked table, then step-by-step instructions for the top picks, then alternatives. Numbers below are made up.</p>
+      <table class="example">
+        <thead>
+          <tr><th>#</th><th>Option</th><th>Pay with</th><th>Total cost</th><th>Value/pt</th><th>Stops</th><th>Caveats</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>LHR–NRT, 10 Mar, airline XX</td>
+            <td>Cash</td>
+            <td>£620</td>
+            <td>—</td>
+            <td>1</td>
+            <td>Example only. Lite fare, bag extra.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>LHR–NRT, 11 Mar, airline YY</td>
+            <td>40,000 card points → 20,000 miles + £180 taxes</td>
+            <td>40k pts + £180</td>
+            <td>1.1 pence/pt (unverified)</td>
+            <td>0</td>
+            <td>Example only. Confirm space on the partner site; confirm the ratio in your bank portal.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">The skill then gives exact booking or transfer steps, and says clearly that it has not booked or transferred anything.</p>
+    </section>
+
+    <section>
+      <h2>Card coverage</h2>
+      <p>Generated from <code>cards/*.yaml</code>. v1 includes India only; other countries are planned. “Verified” means the figure was read on an official issuer or partner page on the date shown — always re-check before transferring.</p>
+<!-- COVERAGE:START -->
+<table class="coverage">
+<thead><tr><th>Country</th><th>Card</th><th>Program</th><th>Partners</th><th>Verified ratios</th><th>Last checked</th><th>Card terms verified</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>India (IN)</td><td>HDFC Bank Infinia / Infinia Metal Edition</td><td>Reward Points (RP)</td><td>22</td><td>6</td><td>2026-11-25</td><td>yes</td><td>6 of 22 partner ratios verified</td></tr>
+<tr><td>India (IN)</td><td>HDFC Bank Diners Club Black / Diners Club Black Metal Edition</td><td>Reward Points (RP)</td><td>22</td><td>6</td><td>2026-11-25</td><td>yes</td><td>6 of 22 partner ratios verified</td></tr>
+<tr><td>India (IN)</td><td>Axis Bank Atlas</td><td>EDGE Miles</td><td>28</td><td>28</td><td>2026-11-25</td><td>yes</td><td>all listed partner ratios verified</td></tr>
+<tr><td>India (IN)</td><td>American Express India Membership Rewards (Platinum Charge, Platinum Travel, Gold Charge; also MRCC / Platinum Reserve / SmartEarn)</td><td>Membership Rewards (MR) points</td><td>7</td><td>0</td><td>2026-11-25</td><td>no</td><td>partner ratios unverified</td></tr>
+</tbody></table>
+<!-- COVERAGE:END -->
+    </section>
+
+    <section>
+      <h2>Disclaimer</h2>
+      <p>Transfer ratios, partners, caps and fees change often, sometimes overnight. Entries marked unverified come from blogs, or from official pages that are old or behind a login. Confirm the ratio in your bank’s transfer portal, and confirm award space on the airline programme’s site, before transferring. This project is not affiliated with any bank, airline or loyalty programme, and nothing here is financial advice.</p>
+    </section>
+  </main>
+  <footer>
+    <p>MIT License · Copyright © 2026 Lakshya · <code>SKILL.md</code> is the source of truth. · <a href="https://github.com/lakshyabatman/travel-buddy-skill">github.com/lakshyabatman/travel-buddy-skill</a></p>
+  </footer>
+</body>
+</html>
