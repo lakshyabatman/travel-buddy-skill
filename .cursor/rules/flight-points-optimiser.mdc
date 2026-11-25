@@ -7,6 +7,10 @@ When the user wants the cheapest flight between two places (or "anywhere"), a ca
 comparison, flexible-date or nearby-airport alternatives, or a price-watch on a route, load and
 follow the repository's `SKILL.md` (Flight Points Optimiser). It is the source of truth.
 
+For a simple ask, follow Quick mode only: one question for dates and flexibility, passengers,
+and cards if they want points; about 5 searches; cash top 3 with a true total and a visa flag;
+one line on points; offer a deep dive. `search.py` is optional and the skill works without it.
+
 Also load the matching `cards/<country>.yaml` when one exists for the card-issuing country.
 `cards/india.yaml` is one country file, not a default route or passport. Never book, pay, or
 transfer points without explicit go-ahead for that exact action. Never invent fares, award
