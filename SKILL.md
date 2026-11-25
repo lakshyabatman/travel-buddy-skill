@@ -41,14 +41,40 @@ where noted.
 |---|---|
 | Origin | City or IATA code. Default: the user's home airport if you know it. |
 | Destination | City/IATA code, a region ("Europe", "Southeast Asia"), or **"anywhere"**. |
-| Dates | Departure (and return, or one-way). |
-| Flexibility | E.g. "±3 days", "any weekend in March", "fixed". Default ±0 if not given. |
+| Dates | Departure (and return, or one-way). Naming a date does **not** mean the date is fixed. |
+| Flexibility | **Always ask. Never a silent default of "exact dates".** Offer: fixed, ±1 day, ±3 days, ±1 week, any time in a given month, or weekends only. On a round trip, ask about the **return separately**. Search exact dates only if the user says **fixed**. If you cannot ask (an automated run, or any turn with no way to get an answer), use **±3 days** and say so. If they already stated the flexibility, use that and do not ask again. |
 | Cabin | economy / premium-economy / business / first. Default economy. |
 | Passengers | Adults, children, infants. Default 1 adult. |
 | Currency | The user's local currency, or one they name (ISO 4217, e.g. USD, EUR, GBP, INR, JPY). If unclear, ask once; otherwise use the currency implied by their location or card-issuing country. Pass it to `search.py --currency` and quote every cash price in that currency. |
 | Cards and balances | Which cards they hold (issuer and product, e.g. Chase Sapphire Reserve, HDFC Infinia, Amex UK Platinum) and current point balances. Also any airline miles already held. **Ask if not given**; without these, do a cash-only answer and say points were not compared. |
 | Card-issuing country | Needed to pick the right `cards/<country>.yaml`. Ask if it is not obvious from the cards. |
 | Constraints | Max stops, preferred/avoided airlines, baggage, visa limits (transit visas matter for self-transfer), latest arrival, budget. |
+
+## Ask about date flexibility first
+
+Do this before any fare search. **Always ask whether the dates are flexible and by how much.**
+Do not treat a named date as fixed, and do not quietly search only that date.
+
+Ask in the same short message as the other missing inputs. Offer these choices, and on a round
+trip ask the same question **again for the return** (the outbound can be fixed while the return
+moves, or the other way around):
+
+- **fixed** (these dates only)
+- **±1 day**
+- **±3 days**
+- **±1 week**
+- **any time in a given month**
+- **weekends only**
+
+**Only search exact dates alone when the user says fixed.** If they already said how flexible
+they are ("±3 days", "any weekend in March", "dates are fixed"), do not ask again. If they
+gave one window for a round trip and it clearly applies to both ends, use it for both and say
+so. If only the departure flexibility is clear, still ask about the return.
+
+If you **cannot ask** (an automated run, a price-watch re-run, or any other case with no reply
+channel), do not assume the dates are fixed. **Default to ±3 days and say so** in the answer,
+for example: "You didn't specify flexibility and I couldn't ask, so I searched ±3 days around
+the dates."
 
 ## Step 0: Check that the card data is fresh
 
@@ -73,16 +99,23 @@ Search in this order, and record the source and time of every price. Use the cho
 throughout.
 
 1. **Your flight search tool** (the agent's built-in flight search, if you have one). Search the
-   exact dates first, then the flexible dates and alternate airports (Step 2).
+   dates they named and the flexibility window from "Ask about date flexibility first". If they
+   said fixed, the recommendation uses those exact dates; Step 2 still scans ±3 days only to
+   fill the Alternative dates table. Then alternate airports (Step 2).
 2. **Fallbacks** if there is no built-in tool, or it fails or returns thin results:
-   - `python search.py <ORIGIN> <DEST> <YYYY-MM-DD> [--return YYYY-MM-DD] [--cabin business] [--adults N] [--flex 3] [--airports AAA,BBB] [--currency USD] --json-only`
+   - `python search.py <ORIGIN> <DEST> <YYYY-MM-DD> [--return YYYY-MM-DD] [--cabin business] [--adults N] [--flex N] [--airports AAA,BBB] [--currency USD] --json-only`
      (Google Flights via the free `fast-flights` scraper; `--currency` is passed through to
-     Google Flights. The scraper may break or get rate-limited. Its round-trip results are less
-     complete than one-way, so cross-check round trips.)
-   - **Google Flights** in a browser (google.com/travel/flights): use the Date grid / Price graph
-     for flexible dates and the "Explore" map for "anywhere". Set the display currency.
-   - **Skyscanner** in a browser: "Whole month" / "Cheapest month" views and "Everywhere" as the
-     destination for "anywhere".
+     Google Flights. `--flex N` scans ±N days around departure and shifts the return by the
+     same number of days. **N must be 0–7**; a larger value is rejected. Use `--flex 1`,
+     `--flex 3`, or `--flex 7` for ±1 day, ±3 days, and ±1 week. If the return window differs
+     from the departure window, do not rely on `--flex` alone. The scraper may break or get
+     rate-limited. Its round-trip results are less complete than one-way, so cross-check
+     round trips.)
+   - **Google Flights** in a browser (google.com/travel/flights): use the **Date grid** and
+     **Price graph** to scan the flexibility window, and the "Explore" map for "anywhere".
+     Set the display currency.
+   - **Skyscanner** in a browser: **"Whole month" / "Cheapest month"** when the window is a
+     month, ±1 week, or weekends only, and "Everywhere" as the destination for "anywhere".
    - **Kayak** in a browser: fare calendar and "Explore" / flexible-date views, as a second
      opinion when Google Flights and Skyscanner disagree or look thin.
    - The **airline's own site** for the final price (often different from OTAs, and needed for
@@ -90,6 +123,13 @@ throughout.
 3. For **"anywhere"**: use Google Flights Explore, Skyscanner "Everywhere", or Kayak Explore
    from the origin for the date range, shortlist the 5-10 cheapest destinations that fit the
    user's constraints, then search each properly.
+4. **Cap the number of searches.** A ±1 day or ±3 day window can be scanned directly. A week
+   is as wide as `search.py --flex` goes (`--flex 7`). For a whole month, weekends only, or
+   any wider window, read the Google Flights date grid / price graph or the Skyscanner month
+   view first, then run full fare searches only for the named dates plus the cheapest samples
+   (about 7–10 dated queries per origin, not every day). Say which days you sampled. On a
+   round trip with different departure and return flexibility, sample pairs instead of shifting
+   both ends by the same amount.
 
 Capture for each option: price (total for all passengers, in the chosen currency), airline(s),
 flight numbers if shown, stops and layover airports, total travel time, baggage included, fare
@@ -106,11 +146,17 @@ flight or a tight self-transfer connection.
 Try these and keep anything materially cheaper (a useful rule of thumb: more than about 10% or a
 clearly meaningful amount per person in the chosen currency) as an alternative:
 
-- **±3 days** around each date (`search.py --flex 3`, or the Google Flights / Kayak date grid).
-  Note day-of-week patterns: midweek departures are often cheaper than Friday or Sunday;
-  red-eyes are often cheaper than daytime flights.
-- **Calendar / month view** on Skyscanner, Google Flights or Kayak when the user is flexible by
-  weeks.
+- **The date window they chose** (or ±3 days if you could not ask, stated as a default). Scan it
+  with `search.py --flex N` (N is 0–7), the Google Flights date grid and price graph, and, when
+  the window is a month, a week, or weekends only, the Skyscanner month view. Sample a wide
+  window instead of querying every day (see Step 1). Note day-of-week patterns: midweek
+  departures are often cheaper than Friday or Sunday; red-eyes are often cheaper than daytime
+  flights; a cheaper return can make the trip longer. These comparisons fill the **Alternative
+  dates** table in Step 4.
+- If they said **fixed**, the ranked recommendation stays on the exact dates. Still scan ±3 days
+  around those dates so the Alternative dates table can show cheaper pairs, or say that none
+  were cheaper. Label every other date as outside the fixed dates. Do not swap the recommended
+  itinerary onto another day unless they then agree.
 - **Nearby / alternate origins and destinations.** Always look at other airports serving the
   same metro area, and at a positioning hop to a better-connected hub, adding the positioning
   flight's price and time and a buffer. Worked examples (adapt to the user's actual cities):
@@ -184,29 +230,50 @@ Use the chosen currency. The rows below only show the format; **never reuse thei
 
 - "Total cost" for points options = points + cash taxes/fees (and transfer fees, if any).
 - Mark any unverified number inline with **(unverified)**.
-- Then give **exact steps for the top 1-3 picks**:
-  - Cash: where to book (airline site vs OTA), fare class/brand, what to check (baggage,
-    change fees, name exactly as on passport).
-  - Points: (1) create or log in to the partner account and confirm the award seat is still
-    there; (2) link the account in the bank portal if needed (note any waiting period);
-    (3) transfer exactly N points from the portal path in the card file; (4) wait for the
-    credit (expected time); (5) book the award on the partner site; (6) pay taxes with a card.
-    Say clearly: "Transfers are irreversible. I won't transfer or book anything until you say so."
+
+**Then always an Alternative dates table**, before the booking steps. One row per depart/return
+pair (on a one-way, leave Return as "—"). Columns: depart date, return date, cheapest price,
+saving versus the **requested** dates (absolute and percent), airline and stops, and the
+trade-off (weekday vs weekend, red-eye, longer or shorter trip, extra overnight). Show the
+**top 3–5 cheaper** date options. If nothing in the window beat the requested dates, do not
+invent rows: write one plain sentence, for example "No date in the ±3 day window was cheaper
+than 16 Dec at £850." The rows below only show the format; **never reuse their numbers**.
+
+| Depart | Return | Cheapest | Saving vs requested dates | Airline / stops | Trade-off |
+|---|---|---|---|---|---|
+| 14 Dec | — | £680 | £170 (20%) | Airline ZZ, 1 stop | Two days earlier; longer elapsed time |
+| 15 Dec | — | £765 | £85 (10%) | Airline XX, nonstop | Weekday; red-eye |
+| 18 Dec | — | £816 | £34 (4%) | Airline XX, nonstop | Two days later |
+
+If you checked award space, say when a nearby date has space the requested date does not (or
+clearly more of it), with the programme and the date you looked. If you did not check awards
+off the requested dates, say that you did not.
+
+Then give **exact steps for the top 1-3 picks**:
+
+- Cash: where to book (airline site vs OTA), fare class/brand, what to check (baggage,
+  change fees, name exactly as on passport).
+- Points: (1) create or log in to the partner account and confirm the award seat is still
+  there; (2) link the account in the bank portal if needed (note any waiting period);
+  (3) transfer exactly N points from the portal path in the card file; (4) wait for the
+  credit (expected time); (5) book the award on the partner site; (6) pay taxes with a card.
+  Say clearly: "Transfers are irreversible. I won't transfer or book anything until you say so."
 
 ## Step 5: Alternatives
 
-After the ranked table, add a short **Alternatives** section: cheaper or better options found
-with other dates, airports (including positioning hops and secondary airports), open-jaw,
+After the Alternative dates table, add a short **Alternatives** section for everything that is
+not another date: airports (including positioning hops and secondary airports), open-jaw,
 separate tickets (with self-transfer and visa risks), other cabins (e.g. business on points vs
-economy cash), rail-plus-air, and other airlines or programmes. Give each one's saving vs the
-top pick and its trade-off.
+economy cash), rail-plus-air, and other airlines or programmes. Date changes belong in the
+Alternative dates table, not here. Give each option's saving vs the top pick and its trade-off.
 
 ## Step 6 (optional): Price watch
 
 If the user wants alerts, offer to set up a recurring routine (using your platform's scheduler /
 routine feature) that:
-- re-runs the cash search (same route, dates, flexibility, cabin, passengers, currency) on a
-  schedule the user picks (e.g. daily at a local morning hour);
+- re-runs the cash search on a schedule the user picks (e.g. daily at a local morning hour),
+  using the flexibility they confirmed (or the stated ±3 day default), not a silent exact-date
+  search; same route, cabin, passengers, and currency;
 - stores the lowest price seen so far and its source;
 - **alerts only when** the price drops below the user's threshold or a new all-time low appears
   (optionally, when award space opens on a named programme, if checkable);
@@ -218,12 +285,20 @@ Confirm the route, threshold, currency and schedule with the user before creatin
 ## Output checklist
 
 - [ ] Inputs confirmed (or defaults stated), including currency
+- [ ] Date flexibility was asked (fixed, ±1 day, ±3 days, ±1 week, a whole month, or weekends
+      only), and the return was asked separately on a round trip. Exact dates only if the user
+      said fixed. If you could not ask, the ±3 day default is stated in the answer
 - [ ] The right `cards/<country>.yaml` loaded, or live official research done and labelled unverified
 - [ ] Stale card entries (> ~60 days) flagged and re-verified
 - [ ] Cash fares from your flight search tool first, then fallbacks; each with source + time
-- [ ] Flexible-date and alternate-airport options checked
+- [ ] The flexibility window was scanned (`search.py --flex N`, Google Flights date grid / price
+      graph, and/or Skyscanner month view). A wide window was sampled, not queried day by day
+- [ ] Alternate airports (and positioning hops, where relevant) checked
 - [ ] Points options: partner, ratio (verified?), points needed, taxes, value per point,
-      caps, fees, transfer time; award space checked on the partner's own site
-- [ ] Ranked table + step-by-step instructions for the top picks
-- [ ] Alternatives section
+      caps, fees, transfer time; award space checked on the partner's own site. Nearby dates
+      with better award space mentioned if that was checked
+- [ ] Ranked table, then an Alternative dates table (top 3–5 cheaper depart/return pairs with
+      absolute and percent savings, airline/stops, and trade-offs — or a plain sentence that
+      none were cheaper), then step-by-step instructions for the top picks
+- [ ] Alternatives section (airports, cabins, split tickets, and other non-date options)
 - [ ] Clear statement that nothing was booked or transferred

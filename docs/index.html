@@ -67,9 +67,10 @@
       <h2>What it does</h2>
       <ul>
         <li>Searches cash fares first with the agent’s built-in flight search, then Google Flights, Skyscanner, Kayak, the airline’s own site, or the bundled <code>search.py</code>.</li>
-        <li>Tries flexible dates, nearby and secondary airports, positioning hops, open-jaw itineraries, rail plus air, and separate tickets via hubs — and spells out self-transfer and visa risks.</li>
+        <li>Asks whether the dates are flexible, and by how much, before it searches. Exact dates are used only when you say the dates are fixed. If it cannot ask, it searches ±3 days and says so.</li>
+        <li>Tries that date window, nearby and secondary airports, positioning hops, open-jaw itineraries, rail plus air, and separate tickets via hubs — and spells out self-transfer and visa risks.</li>
         <li>Compares award tickets using a per-country transfer table (<code>cards/india.yaml</code> in v1). If your country or card isn’t in a file yet, the agent researches the issuer’s official page and labels figures unverified.</li>
-        <li>Returns a ranked table with exact transfer and booking steps, plus alternatives, and can set a price-watch that alerts only when the fare actually drops.</li>
+        <li>Returns a ranked table, then an Alternative dates table (or a plain statement that no nearby date was cheaper), then exact transfer and booking steps. It can also set a price-watch that alerts only when the fare actually drops.</li>
       </ul>
       <p class="muted">Source of truth: <code>SKILL.md</code>. Every fare and ratio must cite a source. Transfers are almost always irreversible.</p>
     </section>
@@ -100,7 +101,7 @@ chmod +x scripts/install.sh</pre>
     <section>
       <h2>Example output</h2>
       <p class="banner">This is a fictional example for illustration only. Do not use these fares, taxes, or ratios to book or transfer points.</p>
-      <p>A typical answer is a ranked table, then step-by-step instructions for the top picks, then alternatives. Numbers below are made up.</p>
+      <p>A typical answer is a ranked table for the dates you asked about, then an Alternative dates table, then step-by-step instructions for the top picks, then other alternatives. Numbers below are made up. In this illustration the requested trip is London to Tokyo, departing 10 March and returning 17 March.</p>
       <table class="example">
         <thead>
           <tr><th>#</th><th>Option</th><th>Pay with</th><th>Total cost</th><th>Value/pt</th><th>Stops</th><th>Caveats</th></tr>
@@ -108,7 +109,7 @@ chmod +x scripts/install.sh</pre>
         <tbody>
           <tr>
             <td>1</td>
-            <td>LHR–NRT, 10 Mar, airline XX</td>
+            <td>LHR–NRT, 10–17 Mar, airline XX</td>
             <td>Cash</td>
             <td>£620</td>
             <td>—</td>
@@ -117,7 +118,7 @@ chmod +x scripts/install.sh</pre>
           </tr>
           <tr>
             <td>2</td>
-            <td>LHR–NRT, 11 Mar, airline YY</td>
+            <td>LHR–NRT, 10–17 Mar, airline YY</td>
             <td>40,000 card points → 20,000 miles + £180 taxes</td>
             <td>40k pts + £180</td>
             <td>1.1 pence/pt (unverified)</td>
@@ -126,7 +127,40 @@ chmod +x scripts/install.sh</pre>
           </tr>
         </tbody>
       </table>
-      <p class="muted">The skill then gives exact booking or transfer steps, and says clearly that it has not booked or transferred anything.</p>
+      <h3>Alternative dates</h3>
+      <p>This table always follows the ranked table. It shows other depart/return pairs inside the flexibility window, or states in one sentence that none were cheaper. Savings are versus the requested dates (here, a made-up £620). The skill also says when award space is better on a nearby date, if it actually checked.</p>
+      <table class="example">
+        <thead>
+          <tr><th>Depart</th><th>Return</th><th>Cheapest</th><th>Saving vs 10–17 Mar</th><th>Airline / stops</th><th>Trade-off</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>8 Mar (Sun)</td>
+            <td>16 Mar (Mon)</td>
+            <td>£496</td>
+            <td>£124 (20%)</td>
+            <td>Airline XX, 1 stop</td>
+            <td>Example only. One day longer. Red-eye outbound.</td>
+          </tr>
+          <tr>
+            <td>9 Mar (Mon)</td>
+            <td>17 Mar (Tue)</td>
+            <td>£558</td>
+            <td>£62 (10%)</td>
+            <td>Airline ZZ, nonstop</td>
+            <td>Example only. Weekday departure.</td>
+          </tr>
+          <tr>
+            <td>12 Mar (Thu)</td>
+            <td>20 Mar (Fri)</td>
+            <td>£589</td>
+            <td>£31 (5%)</td>
+            <td>Airline XX, 1 stop</td>
+            <td>Example only. Trip shifted later; return is a Friday.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">Example only: saver space on airline YY was open on 9 Mar and not on 10 Mar. A real answer says this only after checking the partner site. If no other date is cheaper, there are no rows — the skill says so in a sentence. It then gives exact booking or transfer steps, and says clearly that it has not booked or transferred anything.</p>
     </section>
 
     <section>
