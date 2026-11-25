@@ -158,8 +158,8 @@ def _save_history(origin, dest, dep, ret, args, rows, insight):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Cheapest-fare scan on Google Flights (via fast-flights).")
-    p.add_argument("origin", help="IATA code, e.g. BLR (see also --airports)")
-    p.add_argument("dest", help="IATA code, e.g. DEL")
+    p.add_argument("origin", help="IATA code, e.g. LIS (see also --airports)")
+    p.add_argument("dest", help="IATA code, e.g. GRU")
     p.add_argument("date", help="Departure date YYYY-MM-DD")
     p.add_argument("--return", dest="ret", help="Return date YYYY-MM-DD (round trip)")
     p.add_argument("--cabin", default="economy", choices=sorted(CABINS))
@@ -168,7 +168,7 @@ def main(argv=None):
     p.add_argument("--currency", default="", help="ISO 4217 code passed through to Google Flights (USD, EUR, GBP, MXN, BRL, AUD, JPY, ...). Default: empty, so Google chooses. fast-flights supports this.")
     p.add_argument("--max-stops", type=int, default=None)
     p.add_argument("--flex", type=int, default=0, help="Scan +/-N days around the departure date (return shifts by the same amount)")
-    p.add_argument("--airports", help="Comma-separated origin airports to compare, e.g. BLR,MAA,COK,HYD (overrides origin)")
+    p.add_argument("--airports", help="Comma-separated origin airports to compare, e.g. LIS,OPO (overrides origin)")
     p.add_argument("--top", type=int, default=20, help="Rows to print in the table")
     p.add_argument("--delay", type=float, default=1.5, help="Seconds between requests (be polite; avoids blocks)")
     p.add_argument("--json-only", action="store_true", help="Print only JSON (for agents/scripts)")
