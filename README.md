@@ -98,6 +98,12 @@ Notes:
   browser.
 - `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × `--airports` small.
 
+`search.py` is an optional, unofficial scraper. The skill works without it. When a search
+response contains Google's price-history graph, the script stores that graph plus the fare in
+`~/.flight-points-optimiser/history.jsonl` (override with `--history` or
+`$FLIGHT_POINTS_HISTORY`). `python history.py ORIG DEST YYYY-MM-DD` prints min, median, max,
+and where the latest point sits. If the graph is missing, it says so. That is not a forecast.
+
 ## Docs site
 
 A static GitHub Pages site lives in `docs/index.html` and is published at

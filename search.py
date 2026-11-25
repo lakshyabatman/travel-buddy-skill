@@ -26,7 +26,8 @@ import time
 from datetime import date, datetime, timedelta
 
 try:
-    from fast_flights import FlightQuery, Passengers, create_query, get_flights
+    from fast_flights import FlightQuery, Passengers, create_query, fetch_flights_html
+    from fast_flights.parser import parse as parse_flights
     try:
         from fast_flights import FlightsNotFound
     except ImportError:  # older versions
@@ -67,10 +68,20 @@ def run_query(origin, dest, dep, ret, cabin, adults, children, currency, max_sto
         max_stops=max_stops,
     )
     rows = []
+    insight = None
     try:
-        results = get_flights(q)
+        html = fetch_flights_html(q)
+    except Exception as e:
+        raise RuntimeError("fetch failed: %s" % e) from e
+    try:
+        results = parse_flights(html)
     except FlightsNotFound:
         results = []
+    try:
+        import history
+        insight = history.extract_price_insight(html)
+    except Exception as e:
+        insight = {"history_points": 0, "history_note": "Could not read a price graph: %s" % e}
     for f in results:
         segs = f.flights
         if not segs:
@@ -110,7 +121,39 @@ def run_query(origin, dest, dep, ret, cabin, adults, children, currency, max_sto
                 "fetched_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             }
         )
-    return rows, q.url()
+    return rows, q.url(), insight
+
+
+def _save_history(origin, dest, dep, ret, args, rows, insight):
+    """Append the cheapest fare and any Google graph. Failure must not fail the search."""
+    try:
+        import history
+        from pathlib import Path
+        cheapest = min(rows, key=lambda r: (r["price"], r["stops"]))
+        insight = insight or {}
+        history.record_observation(
+            {
+                "fetched_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+                "origin": origin,
+                "destination": dest,
+                "depart_date": dep.isoformat(),
+                "return_date": ret.isoformat() if ret else None,
+                "cabin": args.cabin,
+                "adults": args.adults,
+                "children": args.children,
+                "currency": args.currency or "",
+                "price": cheapest["price"],
+                "source": "Google Flights via fast-flights",
+                "google_price_level": insight.get("price_level"),
+                "google_insight_price": insight.get("insight_price"),
+                "google_range_low": insight.get("range_low"),
+                "google_range_high": insight.get("range_high"),
+                "google_history": insight.get("history") or [],
+            },
+            Path(args.history).expanduser() if args.history else None,
+        )
+    except Exception as e:
+        print("Price history was not saved: %s" % e, file=sys.stderr)
 
 
 def main(argv=None):
@@ -130,6 +173,8 @@ def main(argv=None):
     p.add_argument("--delay", type=float, default=1.5, help="Seconds between requests (be polite; avoids blocks)")
     p.add_argument("--json-only", action="store_true", help="Print only JSON (for agents/scripts)")
     p.add_argument("--urls", action="store_true", help="Print the Google Flights URL of each query")
+    p.add_argument("--history", help="JSONL file for price history (default ~/.flight-points-optimiser/history.jsonl)")
+    p.add_argument("--no-history", action="store_true", help="Do not append this run to the local price history")
     a = p.parse_args(argv)
 
     origins = [x.strip().upper() for x in (a.airports or a.origin).split(",") if x.strip()]
@@ -139,16 +184,19 @@ def main(argv=None):
     if a.flex < 0 or a.flex > 7:
         p.error("--flex must be between 0 and 7")
 
-    all_rows, errors, urls = [], [], []
+    all_rows, errors, urls, insights = [], [], [], []
     for o in origins:
         for dep in daterange(dep0, a.flex):
             if dep < date.today():
                 continue
             ret = ret0 + (dep - dep0) if ret0 else None
             try:
-                rows, url = run_query(o, dest, dep, ret, a.cabin, a.adults, a.children, a.currency, a.max_stops)
+                rows, url, insight = run_query(o, dest, dep, ret, a.cabin, a.adults, a.children, a.currency, a.max_stops)
                 all_rows.extend(rows)
                 urls.append(url)
+                insights.append({"origin": o, "depart_date": dep.isoformat(), "return_date": ret.isoformat() if ret else None, "insight": insight})
+                if rows and not a.no_history:
+                    _save_history(o, dest, dep, ret, a, rows, insight)
             except Exception as e:  # network block, parser break, etc.
                 errors.append({"origin": o, "date": dep.isoformat(), "error": "%s: %s" % (type(e).__name__, e)})
             time.sleep(a.delay)
@@ -171,6 +219,20 @@ def main(argv=None):
             for k, v in sorted(cal.items(), key=lambda kv: kv[1]["price"])
         ],
         "results": all_rows,
+        "price_insights": [
+            {
+                "origin": item["origin"],
+                "depart_date": item["depart_date"],
+                "return_date": item["return_date"],
+                "price_level": (item["insight"] or {}).get("price_level"),
+                "insight_price": (item["insight"] or {}).get("insight_price"),
+                "range_low": (item["insight"] or {}).get("range_low"),
+                "range_high": (item["insight"] or {}).get("range_high"),
+                "history_points": (item["insight"] or {}).get("history_points"),
+                "history_note": (item["insight"] or {}).get("history_note"),
+            }
+            for item in insights
+        ],
         "errors": errors,
     }
 
@@ -191,6 +253,16 @@ def main(argv=None):
                     print("  %s %s  %s %s" % (c["origin"], c["depart_date"], a.currency or "?", "{:,}".format(c["price"])))
             cur = a.currency or "the currency Google Flights chose"
             print("\nPrices are totals for all passengers in %s as shown by Google Flights at fetch time; re-check before booking." % cur)
+            for item in insights:
+                ins = item["insight"] or {}
+                if ins.get("history_points"):
+                    print("Price graph %s %s: %s points, Google label %s, insight price %s, range %s-%s. Not a forecast." % (
+                        item["origin"], item["depart_date"], ins.get("history_points"),
+                        ins.get("price_level") or "not shown", ins.get("insight_price"),
+                        ins.get("range_low"), ins.get("range_high")))
+                else:
+                    print("No price-history graph for %s %s. Read Price insights on the Google Flights page. Do not invent past prices." % (
+                        item["origin"], item["depart_date"]))
         else:
             print("No results. Google may have blocked the request or changed its page; use the browser fallback.", file=sys.stderr)
         if a.urls:

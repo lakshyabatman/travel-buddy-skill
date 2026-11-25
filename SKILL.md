@@ -366,6 +366,31 @@ routine feature) that:
 
 Confirm the route, threshold, currency and schedule with the user before creating it.
 
+## Buy now or wait?
+
+This is a hint, not a forecast. Never invent a past price.
+
+Use only evidence you actually have:
+
+1. **Google's price-history graph**, when `search.py` extracted one from the search response
+   (a daily series plus, when present, the on-page sentence "prices are currently
+   low/typical/high" and a low/high pair from the same block). Say how many points, the
+   min, median and max, and where the latest point sits. Google's word and a percentile of
+   the graph can disagree; report both. The free `fast-flights` flight list does not include
+   this graph. If the response has no graph, say so.
+2. **Browser fallback.** Open the same Google Flights search and read the Price insights /
+   Price history panel. Do not type in numbers you did not see.
+3. **The local log** (`~/.flight-points-optimiser/history.jsonl`, or `$FLIGHT_POINTS_HISTORY`).
+   It only records searches made on this machine. The first run is one observation. Read it
+   with `python history.py ORIG DEST DATE`.
+4. **Days until departure**, as a general pattern only: fares often move more in the last
+   few weeks. Say that it is general, not a rule for this route.
+5. Do not treat a Kayak "advice" line or a Skyscanner month grid as a history of this date.
+   A month grid compares other dates. It is not a time series.
+
+State a confidence in the **evidence** (low if there is no graph; medium if the graph has
+about 30 or more points) and end with: this is not a guaranteed forecast.
+
 ## Output checklist
 
 - [ ] Inputs confirmed, including currency, bags, seats, and whether changes or refunds matter.
@@ -393,4 +418,5 @@ Confirm the route, threshold, currency and schedule with the user before creatin
       pairs with absolute and percent savings, airline/stops, and trade-offs — or a plain
       sentence that none were cheaper), then step-by-step instructions for the top picks
 - [ ] Alternatives section (airports, cabins, split tickets, and other non-date options)
+- [ ] Buy now or wait uses only a real Google graph, the on-page label, or the local log, and says it is not a forecast. No invented history
 - [ ] Clear statement that nothing was booked, paid, or transferred

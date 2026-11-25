@@ -6,6 +6,10 @@ __pycache__/
 .env
 *.log
 out*.json
+# local price history if a run is pointed at the repo (the default lives in the home directory)
+.flight-points-optimiser/
+history.jsonl
+watch-state.json
 .DS_Store
 .idea/
 .vscode/
