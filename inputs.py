@@ -180,6 +180,10 @@ def prepare_data_file(path, suffixes: tuple) -> Path:
     )
     if private_dir:
         os.chmod(parent, 0o700)
+    if acc.is_symlink():
+        raise ValueError("refusing to follow a symlink: %s" % acc)
+    if acc.exists() and acc.is_file():
+        os.chmod(acc, 0o600)
     return acc
 
 

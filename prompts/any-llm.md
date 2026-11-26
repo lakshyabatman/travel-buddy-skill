@@ -33,7 +33,9 @@ you cannot ask, search ±3 days and say so.
 
 Use at most about 5 searches. Then: **Best picks** (Cheapest, Best trip, Best points value (check seat),
 and only the labels an option earns) and **All options**, one table of at most 5 rows with
-columns Option, Pay with, True total, vs cheapest, Trip (time, stops), Catch. Tag other dates
+columns Option, Pay with, True total, vs cheapest, Out / Back, Trip, Catch. Trip shows both
+durations and includes layovers. A missing return leg says return not fetched. A points row
+shows — under vs cheapest. Tag other dates
 and airports in that table. If you did not ask my passport, Catch says visa check. No points
 pick if I did not ask for points. Offer a deep dive. Stop. Do not book.
 

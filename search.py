@@ -8,8 +8,10 @@ Google Flights / Skyscanner in a browser (the URL of each query is printed with 
 
 Prices are what Google Flights showed at fetch time, in the requested currency, for ALL
 passengers combined. For round trips, the listed segments are the OUTBOUND legs and the
-price is the round-trip total Google shows for that outbound choice. Always re-check the
-fare on the airline/OTA site before booking.
+price on a round trip is the total from a second search that names the outbound
+flight. That search is done for a few outbound options only. If it fails, the return
+is a same-airline one-way schedule labeled as not price-linked, never a guessed fare.
+Elapsed time includes layovers. Always re-check the fare before booking.
 
 Examples:
   python search.py MEX MAD 2026-12-16 --currency MXN
@@ -20,7 +22,9 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import base64
 import json
+import re
 import sys
 import time
 from datetime import date, datetime, timedelta
@@ -36,12 +40,150 @@ def daterange(center: date, flex: int):
         yield center + timedelta(days=d)
 
 
-def hhmm(t) -> str:
-    return "%02d:%02d" % (t[0], t[1])
-
-
 def fmt_dur(mins: int) -> str:
     return "%dh%02dm" % divmod(int(mins), 60)
+
+
+# Google Flights city codes for a few multi-airport cities. Used only as a fallback when an
+# airport code returns an empty or odd payload, and as the hint for --dest-airports.
+METROS = {
+    "TYO": ("NRT", "HND"),
+    "LON": ("LHR", "LGW", "LCY", "STN", "LTN"),
+    "NYC": ("JFK", "EWR", "LGA"),
+    "PAR": ("CDG", "ORY"),
+    "CHI": ("ORD", "MDW"),
+    "WAS": ("IAD", "DCA", "BWI"),
+    "OSA": ("KIX", "ITM", "UKB"),
+    "SEL": ("ICN", "GMP"),
+    "BJS": ("PEK", "PKX"),
+    "SHA": ("PVG", "SHA"),
+    "MIL": ("MXP", "LIN", "BGY"),
+    "ROM": ("FCO", "CIA"),
+    "SAO": ("GRU", "CGH", "VCP"),
+    "RIO": ("GIG", "SDU"),
+    "YTO": ("YYZ", "YTZ"),
+    "BUE": ("EZE", "AEP"),
+}
+AIRPORT_TO_METRO = {airport: city for city, airports in METROS.items() for airport in airports}
+
+RETURN_NOT_FETCHED = "return not fetched"
+LIKELY_RETURN = "likely return flights (schedule only, not price-linked)"
+PRICED_RETURN = "priced round-trip"
+# Public Google consent value. Without it this client gets an ErrorResponse
+# instead of the flight list. It is not a user credential.
+SOCS = "CAESHAgBEhJnd3NfMjAyMzA4MTAtMF9SQzIaAmVuIAEaBgiA_LyaBg"
+SEAT_CODE = {"economy": 1, "premium-economy": 2, "business": 3, "first": 4}
+_CARRIER = re.compile(r"^[A-Z0-9]{2}$")
+_FLIGHT_NO = re.compile(r"^[0-9]{1,5}$")
+
+
+class OddPayload(Exception):
+    """The flight page was empty or not the shape the parser expects."""
+
+
+def metro_of(code: str):
+    """City code for an airport, or None if the code is already a city or unknown."""
+    code = (code or "").upper()
+    if code in METROS:
+        return None
+    return AIRPORT_TO_METRO.get(code)
+
+
+def fallback_metro(code: str, already):
+    """Metro to retry, unless that city or another of its airports is already in the request."""
+    metro = metro_of(code)
+    if not metro:
+        return None
+    requested = {item.upper() for item in already}
+    if metro in requested:
+        return None
+    if (set(METROS[metro]) & requested) - {code.upper()}:
+        return None
+    return metro
+
+
+def _parse_stamp(text: str) -> datetime:
+    return datetime.strptime(text, "%Y-%m-%d %H:%M")
+
+
+def connection_gap(arrival, departure):
+    """Layover minutes at the connection airport. Local arrival vs local next departure.
+
+    Both clocks are local to that airport, so the difference is the wait on the ground.
+    A missing or negative gap is unknown, not zero.
+    """
+    try:
+        gap = int((_parse_stamp(departure) - _parse_stamp(arrival)).total_seconds() // 60)
+    except (TypeError, ValueError):
+        return None
+    if gap < 0:
+        return None
+    return gap
+
+
+def door_to_door(segments: list) -> dict:
+    """Flying time plus each connection wait. Unknown pieces stay unknown."""
+    flying = 0
+    flying_known = True
+    for seg in segments:
+        mins = seg.get("minutes")
+        if isinstance(mins, bool) or not isinstance(mins, (int, float)) or mins < 0:
+            flying_known = False
+            continue
+        flying += int(mins)
+    layovers = []
+    unknown = False
+    for left, right in zip(segments, segments[1:]):
+        gap = connection_gap(left.get("arr"), right.get("dep"))
+        if gap is None:
+            unknown = True
+            continue
+        layovers.append({"airport": left.get("to"), "minutes": gap})
+    longest = max(layovers, key=lambda item: item["minutes"]) if layovers else None
+    elapsed = None
+    if flying_known and not unknown:
+        elapsed = flying + sum(item["minutes"] for item in layovers)
+    return {
+        "flying_minutes": flying if flying_known else None,
+        "elapsed_minutes": elapsed,
+        "longest_layover": longest,
+        "times_unknown": (not flying_known) or unknown,
+    }
+
+
+def leg_text(segments: list) -> str:
+    if not segments:
+        return "unknown"
+    bits = []
+    for seg in segments:
+        dep = seg.get("dep") or ""
+        arr = seg.get("arr") or ""
+        dep_t = dep[11:16] if len(dep) >= 16 else "?"
+        arr_t = arr[11:16] if len(arr) >= 16 else "?"
+        flight = ""
+        carrier = seg.get("carrier")
+        number = seg.get("flight_number")
+        if carrier and number:
+            flight = "%s%s " % (carrier, number)
+        bits.append("%s%s %s-%s %s" % (flight, dep_t, seg.get("from") or "?", seg.get("to") or "?", arr_t))
+    stops = max(len(segments) - 1, 0)
+    stop_s = "nonstop" if stops == 0 else "%d stop%s" % (stops, "" if stops == 1 else "s")
+    numbered = all(seg.get("carrier") and seg.get("flight_number") for seg in segments)
+    tail = stop_s if numbered else "%s, flight number unknown" % stop_s
+    return "%s (%s)" % (", ".join(bits), tail)
+
+
+def trip_text(elapsed, return_date, ret_status) -> str:
+    out = fmt_dur(elapsed) if isinstance(elapsed, int) else "unknown"
+    if not return_date:
+        return "out %s" % out
+    if ret_status == RETURN_NOT_FETCHED:
+        back = RETURN_NOT_FETCHED
+    elif isinstance(ret_status, int):
+        back = fmt_dur(ret_status)
+    else:
+        back = "unknown"
+    return "out %s / back %s" % (out, back)
 
 
 def _load_flights():
@@ -60,23 +202,211 @@ def _load_flights():
     return FlightQuery, Passengers, create_query, parse_flights, FlightsNotFound
 
 
-def _fetch_html(query) -> str:
-    """Fetch with an explicit timeout. primp does not use Python's socket timeout."""
-    import fast_flights.fetcher as fetcher
-    from primp import Client as PrimpClient
+class GoogleErrorPage(Exception):
+    """Google answered with an error page instead of a flight list."""
 
-    def client_with_timeout(*args, **kwargs):
-        kwargs.setdefault("timeout", FETCH_TIMEOUT_S)
-        kwargs.setdefault("connect_timeout", 10)
-        kwargs.setdefault("read_timeout", FETCH_TIMEOUT_S)
-        return PrimpClient(*args, **kwargs)
 
-    previous = fetcher.Client
-    fetcher.Client = client_with_timeout
+def _varint(number: int) -> bytes:
+    out = bytearray()
+    while True:
+        piece = number & 0x7F
+        number >>= 7
+        if number:
+            out.append(piece | 0x80)
+        else:
+            out.append(piece)
+            return bytes(out)
+
+
+def _field(number: int, wire: int) -> bytes:
+    return _varint((number << 3) | wire)
+
+
+def _text_field(number: int, text: str) -> bytes:
+    raw = text.encode()
+    return _field(number, 2) + _varint(len(raw)) + raw
+
+
+def _message_field(number: int, body: bytes) -> bytes:
+    return _field(number, 2) + _varint(len(body)) + body
+
+
+def _varint_field(number: int, value: int) -> bytes:
+    return _field(number, 0) + _varint(value)
+
+
+def _selected_flight(segment: dict) -> bytes:
+    return (
+        _text_field(1, segment["from"])
+        + _text_field(2, segment["dep"][:10])
+        + _text_field(3, segment["to"])
+        + _text_field(5, segment["carrier"])
+        + _text_field(6, segment["flight_number"])
+    )
+
+
+def _flight_data(when: str, origin: str, dest: str, selected: list, max_stops=None) -> bytes:
+    body = _text_field(2, when)
+    for segment in selected:
+        body += _message_field(4, _selected_flight(segment))
+    if max_stops is not None:
+        body += _varint_field(5, max_stops)
+    body += _message_field(13, _text_field(2, origin))
+    body += _message_field(14, _text_field(2, dest))
+    return body
+
+
+def search_token(legs: list, cabin: str, adults: int, children: int, max_stops=None) -> str:
+    """tfs token. A selected outbound puts each segment in the first leg's field 4."""
+    body = b""
+    for when, origin, dest, selected in legs:
+        body += _message_field(3, _flight_data(when, origin, dest, selected, max_stops))
+    for _ in range(adults):
+        body += _varint_field(8, 1)
+    for _ in range(children):
+        body += _varint_field(8, 2)
+    body += _varint_field(9, SEAT_CODE[cabin])
+    body += _varint_field(19, 1 if len(legs) > 1 else 2)
+    return base64.urlsafe_b64encode(body).decode("ascii").rstrip("=")
+
+
+def search_url(token: str, currency: str) -> str:
+    url = "https://www.google.com/travel/flights/search?tfs=%s&hl=en" % token
+    if currency:
+        url += "&curr=%s" % currency
+    return url
+
+
+def _clock(value) -> str:
+    padded = [*(value or []), None, None]
+    return "%02d:%02d" % (padded[0] or 0, padded[1] or 0)
+
+
+def _flight_id(raw):
+    if not isinstance(raw, list) or len(raw) < 2:
+        return None, None, None
+    carrier = raw[0] if isinstance(raw[0], str) else ""
+    number = raw[1] if isinstance(raw[1], str) else (str(raw[1]) if isinstance(raw[1], int) else "")
+    name = raw[3] if len(raw) > 3 and isinstance(raw[3], str) else None
+    if not _CARRIER.fullmatch(carrier) or not _FLIGHT_NO.fullmatch(number):
+        return None, None, name
+    return carrier, number, name
+
+
+def _raw_segment(raw) -> dict:
+    if not isinstance(raw, list) or len(raw) < 21:
+        raise ValueError("short segment")
+    carrier, number, name = _flight_id(raw[22] if len(raw) > 22 else None)
+    depart = "%04d-%02d-%02d %s" % (*raw[20], _clock(raw[8]))
+    arrive = "%04d-%02d-%02d %s" % (*raw[21], _clock(raw[10]))
+    minutes = raw[11] if isinstance(raw[11], int) and not isinstance(raw[11], bool) else None
+    return {
+        "from": raw[3],
+        "to": raw[6],
+        "dep": depart,
+        "arr": arrive,
+        "minutes": minutes,
+        "carrier": carrier,
+        "flight_number": number,
+        "airline": name,
+    }
+
+
+def _raw_offer(item) -> dict | None:
+    flight = item[0]
+    price = item[1][0][1]
+    if isinstance(price, bool) or not isinstance(price, int):
+        return None
+    segments = [_raw_segment(raw) for raw in flight[2]]
+    if not segments:
+        return None
+    airlines = flight[1] if isinstance(flight[1], list) else []
+    return {
+        "price": price,
+        "airlines": [name for name in airlines if isinstance(name, str)],
+        "segments": segments,
+    }
+
+
+def offers_from_payload(payload) -> list:
+    if not isinstance(payload, list):
+        raise OddPayload("flight payload was not a list")
+    offers = []
+    for index in (2, 3):
+        if index >= len(payload) or not isinstance(payload[index], list):
+            continue
+        node = payload[index]
+        if not node or not isinstance(node[0], list):
+            continue
+        for item in node[0]:
+            try:
+                offer = _raw_offer(item)
+            except (IndexError, TypeError, KeyError, ValueError):
+                continue
+            if offer:
+                offers.append(offer)
+    return offers
+
+
+def parse_offers(html: str) -> list:
+    from selectolax.lexbor import LexborHTMLParser
+
+    script = LexborHTMLParser(html).css_first(r"script.ds\:1")
+    text = script.text() if script is not None else ""
+    if not text:
+        raise OddPayload("flight page had no data script")
+    head = text[:800]
+    if "ErrorResponse" in head or "errorHasStatus: true" in head:
+        raise GoogleErrorPage(
+            "Google returned an error page instead of a flight list. "
+            "That is a consent or block response, not an empty route."
+        )
     try:
-        html = fetcher.fetch_flights_html(query)
-    finally:
-        fetcher.Client = previous
+        data = text.split("data:", 1)[1].rsplit(",", 1)[0]
+        payload = json.loads(data)
+    except (IndexError, json.JSONDecodeError, ValueError) as exc:
+        raise OddPayload("odd flight payload") from exc
+    return offers_from_payload(payload)
+
+
+def selectable(offer) -> bool:
+    return all(seg.get("carrier") and seg.get("flight_number") for seg in offer["segments"])
+
+
+def choose_return(offers: list):
+    """Cheapest return, then shortest door-to-door, then fewest segments."""
+    usable = [offer for offer in offers if offer.get("segments")]
+    if not usable:
+        return None
+
+    def key(offer):
+        timing = door_to_door(offer["segments"])
+        elapsed = timing["elapsed_minutes"]
+        return (
+            offer["price"] if isinstance(offer["price"], int) else 10**12,
+            elapsed if isinstance(elapsed, int) else 10**9,
+            len(offer["segments"]),
+        )
+
+    return min(usable, key=key)
+
+
+def _fetch_html(url: str) -> str:
+    """Fetch a Google Flights URL. The consent cookie is what returns a flight list."""
+    from primp import Client
+
+    client = Client(
+        impersonate="chrome_146",
+        impersonate_os="windows",
+        timeout=FETCH_TIMEOUT_S,
+        connect_timeout=10,
+        read_timeout=FETCH_TIMEOUT_S,
+    )
+    try:
+        response = client.get(url, headers={"Cookie": "SOCS=%s" % SOCS})
+        html = response.text
+    except Exception as exc:
+        raise RuntimeError(inputs.public_error(exc)) from exc
     if not isinstance(html, str):
         raise RuntimeError("flight response was not text")
     if len(html) > MAX_HTML_CHARS:
@@ -84,75 +414,168 @@ def _fetch_html(query) -> str:
     return html
 
 
-def run_query(origin, dest, dep, ret, cabin, adults, children, currency, max_stops):
-    FlightQuery, Passengers, create_query, parse_flights, FlightsNotFound = _load_flights()
-    flights = [FlightQuery(date=dep.isoformat(), from_airport=origin, to_airport=dest)]
-    if ret:
-        flights.append(FlightQuery(date=ret.isoformat(), from_airport=dest, to_airport=origin))
-    q = create_query(
-        flights=flights,
-        seat=cabin,
-        trip="round-trip" if ret else "one-way",
-        passengers=Passengers(adults=adults, children=children),
-        currency=currency,
-        language="en",
-        max_stops=max_stops,
-    )
-    rows = []
-    insight = None
-    try:
-        html = _fetch_html(q)
-    except Exception as e:
-        raise RuntimeError(inputs.public_error(e)) from e
-    try:
-        results = parse_flights(html)
-    except FlightsNotFound:
-        results = []
+def _insight(html: str):
     try:
         import history
-        insight = history.extract_price_insight(html)
-    except Exception as e:
-        insight = {"history_points": 0, "history_note": "Could not read a price graph: %s" % inputs.public_error(e)}
-    for f in results:
-        segs = f.flights
-        if not segs:
-            continue
-        first, last = segs[0], segs[-1]
-        # Total elapsed time incl. layovers, from departure/arrival wall clock (local times;
-        # approximate across time zones, so we also keep the sum of flying minutes).
-        fly = sum(int(s.duration or 0) for s in segs)
-        rows.append(
-            {
-                "origin": origin,
-                "destination": dest,
-                "depart_date": dep.isoformat(),
-                "return_date": ret.isoformat() if ret else None,
-                "price": f.price,
-                "currency": currency,
-                "airlines": f.airlines,
-                "stops": len(segs) - 1,
-                "route": "-".join([segs[0].from_airport.code] + [s.to_airport.code for s in segs]),
-                "depart_time": hhmm(first.departure.time),
-                "arrive_time": hhmm(last.arrival.time),
-                "arrive_date": "%04d-%02d-%02d" % tuple(last.arrival.date),
-                "flying_minutes": fly,
-                "segments": [
-                    {
-                        "from": s.from_airport.code,
-                        "to": s.to_airport.code,
-                        "dep": "%04d-%02d-%02d %s" % (*s.departure.date, hhmm(s.departure.time)),
-                        "arr": "%04d-%02d-%02d %s" % (*s.arrival.date, hhmm(s.arrival.time)),
-                        "minutes": s.duration,
-                        "aircraft": s.plane_type,
-                    }
-                    for s in segs
-                ],
-                "google_flights_url": q.url(),
-                "source": "Google Flights via fast-flights",
-                "fetched_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-            }
+        return history.extract_price_insight(html)
+    except Exception as exc:
+        return {"history_points": 0, "history_note": "Could not read a price graph: %s" % inputs.public_error(exc)}
+
+
+def _load_offers(url: str):
+    html = _fetch_html(url)
+    try:
+        offers = parse_offers(html)
+    except GoogleErrorPage:
+        return html, [], _insight(html), "error"
+    return html, offers, _insight(html), "ok"
+
+
+def _row(origin, dest, dep, ret, currency, url, outbound, back, price, status, note):
+    segs = outbound["segments"]
+    timing = door_to_door(segs)
+    back_segs = (back or {}).get("segments") or []
+    back_timing = door_to_door(back_segs) if back_segs else None
+    back_elapsed = back_timing["elapsed_minutes"] if back_timing else None
+    if status == PRICED_RETURN:
+        back_text = leg_text(back_segs)
+        ret_status = back_elapsed
+    elif status == LIKELY_RETURN:
+        back_text = "%s: %s" % (LIKELY_RETURN, leg_text(back_segs))
+        ret_status = back_elapsed
+    else:
+        back_text = RETURN_NOT_FETCHED
+        ret_status = RETURN_NOT_FETCHED
+    first, last = segs[0], segs[-1]
+    return {
+        "origin": origin,
+        "destination": dest,
+        "depart_date": dep.isoformat(),
+        "return_date": ret.isoformat() if ret else None,
+        "price": price,
+        "currency": currency,
+        "airlines": outbound.get("airlines") or [],
+        "stops": len(segs) - 1,
+        "route": "-".join([segs[0]["from"]] + [seg["to"] for seg in segs]),
+        "depart_time": first["dep"][11:16],
+        "arrive_time": last["arr"][11:16],
+        "arrive_date": last["arr"][:10],
+        "flying_minutes": timing["flying_minutes"],
+        "elapsed_minutes": timing["elapsed_minutes"],
+        "longest_layover": timing["longest_layover"],
+        "times_unknown": timing["times_unknown"],
+        "out": leg_text(segs),
+        "back": back_text if ret else None,
+        "return": None if not ret else {
+            "status": status,
+            "note": note,
+            "price": price if status == PRICED_RETURN else None,
+            "stops": max(len(back_segs) - 1, 0) if back_segs else None,
+            "elapsed_minutes": back_elapsed,
+            "longest_layover": back_timing["longest_layover"] if back_timing else None,
+            "segments": back_segs or None,
+        },
+        "trip": trip_text(timing["elapsed_minutes"], ret, ret_status if ret else None),
+        "fare_brand": None,
+        "bags": "unknown",
+        "segments": segs,
+        "google_flights_url": url,
+        "source": "Google Flights",
+        "fetched_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+    }
+
+
+def _same_airline(outbound, offer) -> bool:
+    wanted = {seg["carrier"] for seg in outbound["segments"] if seg.get("carrier")}
+    found = {seg["carrier"] for seg in offer["segments"] if seg.get("carrier")}
+    return bool(wanted and wanted & found)
+
+
+def run_query(origin, dest, dep, ret, cabin, adults, children, currency, max_stops, return_picks=3, pause=0):
+    _load_flights()
+    when = dep.isoformat()
+    one_way = search_url(
+        search_token([(when, origin, dest, [])], cabin, adults, children, max_stops), currency,
+    )
+    if not ret:
+        _html, offers, insight, status = _load_offers(one_way)
+        if status == "error":
+            raise GoogleErrorPage(
+                "Google returned an error page instead of a flight list. "
+                "That is a consent or block response, not an empty route."
+            )
+        rows = [
+            _row(origin, dest, dep, None, currency, one_way, offer, None, offer["price"], None, None)
+            for offer in offers
+        ]
+        return rows, one_way, insight
+
+    back_when = ret.isoformat()
+    round_url = search_url(
+        search_token(
+            [(when, origin, dest, []), (back_when, dest, origin, [])],
+            cabin, adults, children, max_stops,
+        ),
+        currency,
+    )
+    html, offers, insight, status = _load_offers(round_url)
+    note = None
+    if status != "ok" or not offers:
+        if pause:
+            time.sleep(pause)
+        html, offers, insight, status = _load_offers(one_way)
+        note = "Outbound list is the one-way search. The round-trip page had no itineraries."
+        if status == "error":
+            raise GoogleErrorPage(
+                "Google returned an error page instead of a flight list. "
+                "That is a consent or block response, not an empty route."
+            )
+    ranked = sorted(
+        (offer for offer in offers if selectable(offer)),
+        key=lambda offer: offer["price"],
+    )[:return_picks]
+    if not ranked:
+        return [
+            _row(origin, dest, dep, ret, currency, round_url, offer, None, None, RETURN_NOT_FETCHED, note)
+            for offer in offers[:return_picks]
+        ], round_url, insight or _insight(html)
+    rows = []
+    schedule = None
+    for offer in ranked:
+        if pause:
+            time.sleep(pause)
+        token = search_token(
+            [(when, origin, dest, offer["segments"]), (back_when, dest, origin, [])],
+            cabin, adults, children, max_stops,
         )
-    return rows, q.url(), insight
+        url = search_url(token, currency)
+        _html, backs, _back_insight, back_status = _load_offers(url)
+        chosen = choose_return(backs) if back_status == "ok" else None
+        if chosen:
+            rows.append(_row(
+                origin, dest, dep, ret, currency, url, offer, chosen, chosen["price"], PRICED_RETURN, note,
+            ))
+            continue
+        if schedule is None:
+            if pause:
+                time.sleep(pause)
+            schedule_url = search_url(
+                search_token([(back_when, dest, origin, [])], cabin, adults, children, max_stops),
+                currency,
+            )
+            _html, schedule, _ignored, _schedule_status = _load_offers(schedule_url)
+            schedule = schedule or []
+        match = choose_return([item for item in schedule if _same_airline(offer, item)])
+        if match:
+            rows.append(_row(
+                origin, dest, dep, ret, currency, url, offer, match, None, LIKELY_RETURN,
+                "One-way schedule on the return date for the same airline. Not the round-trip price.",
+            ))
+        else:
+            rows.append(_row(
+                origin, dest, dep, ret, currency, url, offer, None, None, RETURN_NOT_FETCHED, note,
+            ))
+    return rows, round_url, insight or _insight(html)
 
 
 def _save_history(origin, dest, dep, ret, args, rows, insight):
@@ -194,8 +617,38 @@ def _sort_key(row):
     if isinstance(price, bool) or not isinstance(price, (int, float)):
         price = 10**12
     stops = row.get("stops") if isinstance(row.get("stops"), int) else 99
-    fly = row.get("flying_minutes") if isinstance(row.get("flying_minutes"), int) else 10**9
-    return (price, stops, fly)
+    elapsed = row.get("elapsed_minutes")
+    if not isinstance(elapsed, int):
+        elapsed = row.get("flying_minutes") if isinstance(row.get("flying_minutes"), int) else 10**9
+    return (price, stops, elapsed)
+
+
+def fallback_target(origin, dest, origins, dests):
+    """Retry one side only. Prefer the destination airport (HND -> TYO)."""
+    alt_d = fallback_metro(dest, dests)
+    if alt_d:
+        return origin, alt_d, dest, alt_d
+    alt_o = fallback_metro(origin, origins)
+    if alt_o:
+        return alt_o, dest, origin, alt_o
+    return None
+
+
+def _needs_fallback(rows, err) -> bool:
+    if isinstance(err, OddPayload):
+        return True
+    return err is None and not rows
+
+
+def _attempt(origin, dest, dep, ret, args):
+    try:
+        rows, url, insight = run_query(
+            origin, dest, dep, ret, args.cabin, args.adults, args.children, args.currency, args.max_stops,
+            return_picks=args.return_picks, pause=args.delay,
+        )
+        return rows, url, insight, None
+    except Exception as exc:
+        return [], None, None, exc
 
 
 def _fmt_price(price) -> str:
@@ -216,8 +669,11 @@ def main(argv=None):
     p.add_argument("--currency", default="", help="ISO 4217 code passed through to Google Flights (USD, EUR, GBP, MXN, BRL, AUD, JPY, ...). Default: empty, so Google chooses. fast-flights supports this.")
     p.add_argument("--max-stops", type=int, default=None)
     p.add_argument("--flex", type=int, default=0, help="Scan +/-N days around the departure date (return shifts by the same amount)")
-    p.add_argument("--airports", help="Comma-separated origin airports to compare, e.g. LIS,OPO (overrides origin)")
+    p.add_argument("--airports", help="Alias of --origin-airports")
+    p.add_argument("--origin-airports", help="Comma-separated origin airports to search and merge, e.g. LHR,LGW")
+    p.add_argument("--dest-airports", help="Comma-separated destination airports to search and merge, e.g. NRT,HND")
     p.add_argument("--top", type=int, default=20, help="Rows to print in the table")
+    p.add_argument("--return-picks", type=int, default=3, help="Round-trip outbound options whose return is fetched (1-5)")
     p.add_argument("--delay", type=float, default=1.5, help="Seconds between requests (be polite; avoids blocks)")
     p.add_argument("--json-only", action="store_true", help="Print only JSON (for agents/scripts)")
     p.add_argument("--urls", action="store_true", help="Print the Google Flights URL of each query")
@@ -225,8 +681,10 @@ def main(argv=None):
     p.add_argument("--no-history", action="store_true", help="Do not append this run to the local price history")
     a = p.parse_args(argv)
 
-    origins = inputs.airports(a.airports or a.origin, p)
-    dest = inputs.iata(a.dest, "destination", p)
+    if a.airports and a.origin_airports:
+        p.error("use --origin-airports or --airports, not both")
+    origins = inputs.airports(a.origin_airports or a.airports or a.origin, p)
+    dests = inputs.airports(a.dest_airports or a.dest, p)
     dep0 = inputs.iso_date(a.date, "departure date", p)
     ret0 = inputs.iso_date(a.ret, "return date", p) if a.ret else None
     if ret0 and ret0 < dep0:
@@ -238,6 +696,7 @@ def main(argv=None):
         a.max_stops = inputs.bounded_int(a.max_stops, "--max-stops", p, 0, 5)
     a.flex = inputs.bounded_int(a.flex, "--flex", p, 0, 7)
     a.top = inputs.bounded_int(a.top, "--top", p, 1, 50)
+    a.return_picks = inputs.bounded_int(a.return_picks, "--return-picks", p, 1, 5)
     a.delay = inputs.delay_seconds(a.delay, p)
     if a.history:
         try:
@@ -245,39 +704,78 @@ def main(argv=None):
         except ValueError as exc:
             p.error(str(exc))
 
-    all_rows, errors, urls, insights = [], [], [], []
+    all_rows, errors, urls, insights, fallbacks = [], [], [], [], []
     for o in origins:
-        for dep in daterange(dep0, a.flex):
-            if dep < date.today():
-                continue
-            ret = ret0 + (dep - dep0) if ret0 else None
-            try:
-                rows, url, insight = run_query(o, dest, dep, ret, a.cabin, a.adults, a.children, a.currency, a.max_stops)
-                all_rows.extend(rows)
-                urls.append(url)
-                insights.append({"origin": o, "depart_date": dep.isoformat(), "return_date": ret.isoformat() if ret else None, "insight": insight})
-                if rows and not a.no_history:
-                    _save_history(o, dest, dep, ret, a, rows, insight)
-            except Exception as e:  # network block, parser break, etc.
-                errors.append({"origin": o, "date": dep.isoformat(), "error": inputs.public_error(e)})
-            time.sleep(a.delay)
+        for dest in dests:
+            for dep in daterange(dep0, a.flex):
+                if dep < date.today():
+                    continue
+                ret = ret0 + (dep - dep0) if ret0 else None
+                rows, url, insight, err = _attempt(o, dest, dep, ret, a)
+                used_o, used_d = o, dest
+                if _needs_fallback(rows, err):
+                    target = fallback_target(o, dest, origins, dests)
+                    if target:
+                        fb_o, fb_d, which, metro = target
+                        print(
+                            "HINT %s on %s returned no usable Google Flights results. Retrying metro code %s (%s)."
+                            % (which, dep.isoformat(), metro, ", ".join(METROS[metro])),
+                            file=sys.stderr,
+                        )
+                        fallbacks.append({
+                            "from": which,
+                            "to": metro,
+                            "date": dep.isoformat(),
+                            "reason": "empty or odd payload",
+                        })
+                        time.sleep(a.delay)
+                        rows, url, insight, err = _attempt(fb_o, fb_d, dep, ret, a)
+                        used_o, used_d = fb_o, fb_d
+                        for row in rows:
+                            row["fallback_from"] = which
+                if err:
+                    errors.append({
+                        "origin": used_o,
+                        "destination": used_d,
+                        "date": dep.isoformat(),
+                        "error": inputs.public_error(err),
+                    })
+                else:
+                    all_rows.extend(rows)
+                    if url:
+                        urls.append(url)
+                    insights.append({
+                        "origin": used_o,
+                        "destination": used_d,
+                        "depart_date": dep.isoformat(),
+                        "return_date": ret.isoformat() if ret else None,
+                        "insight": insight,
+                    })
+                    if rows and not a.no_history:
+                        _save_history(used_o, used_d, dep, ret, a, rows, insight)
+                time.sleep(a.delay)
 
     all_rows.sort(key=_sort_key)
-    # Cheapest per date/origin: a quick calendar view
+    # Cheapest per date/origin/destination: a quick calendar view
     cal = {}
     for r in all_rows:
-        k = (r["origin"], r["depart_date"])
+        k = (r["origin"], r["destination"], r["depart_date"])
         if k not in cal or _sort_key(r) < _sort_key(cal[k]):
             cal[k] = r
     out = {
         "query": {
-            "origins": origins, "destination": dest, "date": a.date, "return": a.ret,
+            "origins": origins, "destinations": dests, "date": a.date, "return": a.ret,
             "cabin": a.cabin, "adults": a.adults, "children": a.children,
             "currency": a.currency, "flex_days": a.flex,
         },
+        "fallbacks": fallbacks,
         "cheapest_by_origin_and_date": [
-            {"origin": k[0], "depart_date": k[1], "price": v["price"], "airlines": v["airlines"], "stops": v["stops"]}
-            for k, v in sorted(cal.items(), key=lambda kv: kv[1]["price"])
+            {
+                "origin": k[0], "destination": k[1], "depart_date": k[2],
+                "price": v["price"], "airlines": v["airlines"], "stops": v["stops"],
+                "elapsed_minutes": v.get("elapsed_minutes"),
+            }
+            for k, v in sorted(cal.items(), key=lambda kv: _sort_key(kv[1]))
         ],
         "results": all_rows,
         "price_insights": [
@@ -299,21 +797,35 @@ def main(argv=None):
 
     if not a.json_only:
         if all_rows:
-            hdr = "%-4s %-10s %10s  %-26s %5s  %-5s %-5s %-8s %s" % (
-                "FROM", "DATE", "PRICE", "AIRLINE(S)", "STOPS", "DEP", "ARR", "FLYING", "ROUTE")
-            print(hdr)
-            print("-" * len(hdr))
             for r in all_rows[: a.top]:
-                print("%-4s %-10s %10s  %-26s %5d  %-5s %-5s %-8s %s" % (
-                    r["origin"], r["depart_date"], _fmt_price(r["price"]),
-                    ", ".join(r["airlines"])[:26], r["stops"], r["depart_time"], r["arrive_time"],
-                    fmt_dur(r["flying_minutes"]), r["route"]))
+                lay = r.get("longest_layover") or {}
+                if lay.get("minutes") is None:
+                    lay_s = "unknown" if r.get("times_unknown") else "none"
+                else:
+                    lay_s = "%s at %s" % (fmt_dur(lay["minutes"]), lay.get("airport") or "?")
+                flying = fmt_dur(r["flying_minutes"]) if isinstance(r.get("flying_minutes"), int) else "unknown"
+                print("%s-%s %s  %s %s  %s  %s stop(s)  %s" % (
+                    r["origin"], r["destination"], r["depart_date"], a.currency or "?",
+                    _fmt_price(r["price"]), ", ".join(r["airlines"])[:40], r["stops"], r["route"]))
+                print("  OUT  %s" % r.get("out"))
+                if r.get("return_date"):
+                    print("  BACK %s" % r.get("back"))
+                print("  TRIP %s; flying %s; longest layover %s" % (r.get("trip"), flying, lay_s))
+                print("  fare brand unknown; bags unknown")
             if len(cal) > 1:
                 print("\nCheapest per origin/date:")
                 for c in out["cheapest_by_origin_and_date"]:
-                    print("  %s %s  %s %s" % (c["origin"], c["depart_date"], a.currency or "?", _fmt_price(c["price"])))
+                    print("  %s-%s %s  %s %s" % (
+                        c["origin"], c["destination"], c["depart_date"], a.currency or "?", _fmt_price(c["price"])))
             cur = a.currency or "the currency Google Flights chose"
             print("\nPrices are totals for all passengers in %s as shown by Google Flights at fetch time; re-check before booking." % cur)
+            notes = []
+            for r in all_rows:
+                note = (r.get("return") or {}).get("note")
+                if note and note not in notes:
+                    notes.append(note)
+            for note in notes:
+                print(note)
             for item in insights:
                 ins = item["insight"] or {}
                 if ins.get("history_points"):
@@ -325,11 +837,15 @@ def main(argv=None):
                     print("No price-history graph for %s %s. Read Price insights on the Google Flights page. Do not invent past prices." % (
                         item["origin"], item["depart_date"]))
         else:
-            print("No results. Google may have blocked the request or changed its page; use the browser fallback.", file=sys.stderr)
+            if errors:
+                print("No flight list was returned. See the error below.", file=sys.stderr)
+            else:
+                print("No results. Google may have blocked the request or changed its page; use the browser fallback.", file=sys.stderr)
         if a.urls:
             print("\nGoogle Flights URLs:\n" + "\n".join(urls))
         for e in errors:
-            print("ERROR %s %s: %s" % (e["origin"], e["date"], inputs.one_line(e["error"])), file=sys.stderr)
+            print("ERROR %s-%s %s: %s" % (
+                e.get("origin"), e.get("destination") or "?", e["date"], inputs.one_line(e["error"])), file=sys.stderr)
         print("\n--- JSON ---")
     print(json.dumps(out, indent=2, ensure_ascii=False))
     return 0 if all_rows else 2
