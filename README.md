@@ -103,14 +103,15 @@ Notes:
 - `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × airports small.
 
 `search.py` is an optional, unofficial scraper. The skill works without it. When a search
-response contains Google's price-history graph, the script stores that graph plus the fare in
-`~/.flight-points-optimiser/history.jsonl` (override with `--history` or
+response contains Google's price words or a price graph, the script stores them with the fare
+in `~/.flight-points-optimiser/history.jsonl` (override with `--history` or
 `$FLIGHT_POINTS_HISTORY`). The directory is mode 0700 and the file is mode 0600, including
-an existing file the next time it is written. It stores
-the route, dates, cabin, passenger counts, currency, and price. It does not store names,
-passport numbers, or card numbers. `python history.py ORIG DEST YYYY-MM-DD` prints min,
-median, max, and where the latest point sits. If the graph is missing, it says so. That is
-not a forecast. `watch.py` keeps the same kind of record in
+an existing file the next time it is written. It stores the route, dates, cabin, passenger
+counts, currency, and price. It does not store names, passport numbers, or card numbers.
+`python history.py ORIG DEST YYYY-MM-DD` quotes Google's words when they were stored, and
+prints how many local observations exist and the first-seen date. Fewer than 5 observations,
+or a span under 7 days, is "not enough history". It does not score the graph. That is not a
+forecast. `watch.py` keeps the same kind of record in
 `~/.flight-points-optimiser/watch-ORIGIN-DEST-DATE.json`. Both names are gitignored if a
 run is pointed at this repo.
 

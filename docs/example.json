@@ -20,7 +20,7 @@
     },
     {
       "label": "Best points value (check seat)",
-      "line": "64,000 miles + €210 taxes on 10–17 Mar. Seat not checked."
+      "line": "64,000 miles + €210 taxes on 10–17 Mar. Seat not checked. Not the cash verdict."
     }
   ],
   "rows": [
@@ -60,11 +60,16 @@
       "option": "points · airline YY, 10–17 Mar",
       "pay_with": "64,000 miles + taxes",
       "true_total": "64,000 miles + €210",
-      "vs_cheapest": "€210 cash still due",
+      "vs_cheapest": "—",
       "trip": "10h, nonstop",
-      "catch": "Example only. Seat not checked. (unverified) ratio."
+      "catch": "Example only. Seat not checked. points, not cash. (unverified) ratio."
     }
   ],
   "no_cheaper_date": false,
-  "recommended_reason": "Cheapest is airline XX on 8–16 Mar at €449. The €390 split ticket is not a pick."
+  "recommended_reason": "Cheapest is airline XX on 8–16 Mar at €449. The €390 split ticket is not a pick.",
+  "verdict": {
+    "label": "Not enough data",
+    "reason": "Example only. This sample has no Google price sentence and no saved searches.",
+    "note": "This is not a forecast."
+  }
 }

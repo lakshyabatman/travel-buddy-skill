@@ -37,7 +37,9 @@ columns Option, Pay with, True total, vs cheapest, Out / Back, Trip, Catch. Trip
 durations and includes layovers. A missing return leg says return not fetched. A points row
 shows — under vs cheapest. Tag other dates
 and airports in that table. If you did not ask my passport, Catch says visa check. No points
-pick if I did not ask for points. Offer a deep dive. Stop. Do not book.
+pick if I did not ask for points. The points label, if any, is "Best points value (check seat)"
+and is not the cash verdict. End with exactly one cash verdict: Book now, Watch, or Not enough
+data, the reason, and "this is not a forecast". Offer a deep dive. Stop. Do not book.
 
 ## Full mode
 
@@ -47,7 +49,9 @@ as a numbered list (site, URL, time). A split ticket's Catch says unprotected se
 and it is not Cheapest unless I accepted that. Fixed dates are never the pick. If no other
 date was cheaper, say so in one line. For a points pick, give the programme link and a
 30-second check (saver versus standard, taxes, mixed cabins) and say the seat was not checked
-if you could not see it. A buy-or-wait note may use a Google price-history graph or my local
-log only, and must say it is not a forecast.
+if you could not see it. End with exactly one cash verdict. Quote Google's own price words
+when you saw them, and say future prices may not behave as expected. Otherwise use only my
+local log: the number of observations and the first-seen date. Under 5 observations or under
+7 days is not enough history. Say "this is not a forecast".
 
 End by stating that you have not booked or transferred anything.

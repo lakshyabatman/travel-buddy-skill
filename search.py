@@ -601,6 +601,7 @@ def _save_history(origin, dest, dep, ret, args, rows, insight):
                 "price": cheapest["price"],
                 "source": "Google Flights via fast-flights",
                 "google_price_level": insight.get("price_level"),
+                "google_quote": insight.get("quote"),
                 "google_insight_price": insight.get("insight_price"),
                 "google_range_low": insight.get("range_low"),
                 "google_range_high": insight.get("range_high"),
@@ -784,6 +785,7 @@ def main(argv=None):
                 "depart_date": item["depart_date"],
                 "return_date": item["return_date"],
                 "price_level": (item["insight"] or {}).get("price_level"),
+                "quote": (item["insight"] or {}).get("quote"),
                 "insight_price": (item["insight"] or {}).get("insight_price"),
                 "range_low": (item["insight"] or {}).get("range_low"),
                 "range_high": (item["insight"] or {}).get("range_high"),
@@ -828,13 +830,11 @@ def main(argv=None):
                 print(note)
             for item in insights:
                 ins = item["insight"] or {}
-                if ins.get("history_points"):
-                    print("Price graph %s %s: %s points, Google label %s, insight price %s, range %s-%s. Not a forecast." % (
-                        item["origin"], item["depart_date"], ins.get("history_points"),
-                        ins.get("price_level") or "not shown", ins.get("insight_price"),
-                        ins.get("range_low"), ins.get("range_high")))
+                if ins.get("quote"):
+                    print('Google %s %s: "%s". Future prices may not behave as expected. This is not a forecast.' % (
+                        item["origin"], item["depart_date"], ins.get("quote")))
                 else:
-                    print("No price-history graph for %s %s. Read Price insights on the Google Flights page. Do not invent past prices." % (
+                    print("No Google price insight for %s %s. Do not invent one." % (
                         item["origin"], item["depart_date"]))
         else:
             if errors:
