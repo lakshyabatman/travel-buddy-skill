@@ -6,9 +6,12 @@ __pycache__/
 .env
 *.log
 out*.json
-# local price history if a run is pointed at the repo (the default lives in the home directory)
+# Local price history and watch state. The default directory is
+# ~/.flight-points-optimiser/ (mode 0700). These names cover a run pointed at the repo.
 .flight-points-optimiser/
+*.jsonl
 history.jsonl
+watch-*.json
 watch-state.json
 .DS_Store
 .idea/
@@ -21,6 +24,7 @@ watch-state.json
 .claude/skills/flight-points-optimiser/history.py
 .claude/skills/flight-points-optimiser/watch.py
 .claude/skills/flight-points-optimiser/awards.py
+.claude/skills/flight-points-optimiser/inputs.py
 .claude/skills/flight-points-optimiser/requirements.txt
 .claude/skills/flight-points-optimiser/prompts/
 .claude/skills/flight-points-optimiser/fees/
@@ -31,6 +35,7 @@ watch-state.json
 .cursor/skills/flight-points-optimiser/history.py
 .cursor/skills/flight-points-optimiser/watch.py
 .cursor/skills/flight-points-optimiser/awards.py
+.cursor/skills/flight-points-optimiser/inputs.py
 .cursor/skills/flight-points-optimiser/requirements.txt
 .cursor/skills/flight-points-optimiser/prompts/
 .cursor/skills/flight-points-optimiser/fees/

@@ -20,8 +20,13 @@ CASES = Path(__file__).resolve().parent / "cases.yaml"
 REQUIRED = ("id", "kind", "prompt", "must")
 
 
+class NoAliasLoader(yaml.SafeLoader):
+    def ignore_aliases(self, _data):
+        return True
+
+
 def load():
-    doc = yaml.safe_load(CASES.read_text())
+    doc = yaml.load(CASES.read_text(), Loader=NoAliasLoader)
     if not isinstance(doc, dict) or not isinstance(doc.get("cases"), list):
         raise SystemExit("evals/cases.yaml needs a cases list")
     ids = []
@@ -33,8 +38,8 @@ def load():
             raise SystemExit("duplicate id " + case["id"])
         ids.append(case["id"])
     n = len(doc["cases"])
-    if not 10 <= n <= 15:
-        raise SystemExit(f"expected 10 to 15 cases, found {n}")
+    if not 10 <= n <= 20:
+        raise SystemExit(f"expected 10 to 20 cases, found {n}")
     return doc
 
 

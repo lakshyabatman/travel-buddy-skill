@@ -21,6 +21,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import inputs
+
 LEVEL_RE = re.compile(
     r"Prices are currently(?:\s|<[^>]+>)*(low|typical|high)\b",
     re.IGNORECASE,
@@ -103,20 +105,29 @@ def _series_ok(series: list) -> bool:
 
 
 def _find_insight_block(payload):
-    """Find the list that holds the daily series and the neighbouring price fields."""
+    """Find the list that holds the daily series and the neighbouring price fields.
+
+    The walk is bounded so a hostile page cannot recurse until the interpreter stops.
+    """
     found = []
-
-    def walk(node):
-        if isinstance(node, list):
-            if _series_ok(node):
-                found.append(("series", node))
-            # Parent shaped like the live payload: index 10 is [series].
-            if len(node) > 10 and isinstance(node[10], list) and node[10] and _series_ok(node[10][0] if isinstance(node[10][0], list) else []):
-                found.append(("block", node))
-            for child in node:
-                walk(child)
-
-    walk(payload)
+    stack = [payload]
+    while stack:
+        node = stack.pop()
+        if not isinstance(node, list):
+            continue
+        if _series_ok(node):
+            found.append(("series", node))
+        # Parent shaped like the live payload: index 10 is [series].
+        if (
+            len(node) > 10
+            and isinstance(node[10], list)
+            and node[10]
+            and _series_ok(node[10][0] if isinstance(node[10][0], list) else [])
+        ):
+            found.append(("block", node))
+        for child in reversed(node):
+            if isinstance(child, list):
+                stack.append(child)
     blocks = [n for kind, n in found if kind == "block"]
     if blocks:
         return blocks[0]
@@ -293,27 +304,32 @@ def key_of(rec: dict) -> tuple:
 
 
 def record_observation(rec: dict, path: Path | None = None) -> Path:
-    path = path or default_history_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    line = json.dumps(rec, ensure_ascii=False, separators=(",", ":"))
-    with path.open("a", encoding="utf-8") as f:
-        f.write(line + "\n")
+    path = inputs.prepare_data_file(path or default_history_path(), (".jsonl",))
+    line = json.dumps(inputs.sanitize_observation(rec), ensure_ascii=False, separators=(",", ":"))
+    inputs.append_private(path, line + "\n")
     return path
 
 
 def load_observations(path: Path | None = None) -> list:
-    path = path or default_history_path()
+    path = inputs.normalize_data_path(path or default_history_path(), (".jsonl",))
     if not path.is_file():
         return []
+    if path.is_symlink() or path.stat().st_size > 8_000_000:
+        raise ValueError("history file is a symlink or larger than 8MB")
     rows = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            rows.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
+    with path.open(encoding="utf-8") as handle:
+        for line in handle:
+            if len(line) > 100_000:
+                continue
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+            if len(rows) >= 10000:
+                break
     return rows
 
 
@@ -398,9 +414,20 @@ def main(argv=None):
     p.add_argument("--from-html", help="Parse a saved Google Flights HTML response instead of the log")
     p.add_argument("--json", action="store_true")
     a = p.parse_args(argv)
-    path = Path(a.history).expanduser() if a.history else default_history_path()
+    try:
+        path = inputs.normalize_data_path(a.history, (".jsonl",)) if a.history else default_history_path()
+    except ValueError as exc:
+        p.error(str(exc))
     if a.from_html:
-        html = Path(a.from_html).read_text(encoding="utf-8", errors="replace")
+        try:
+            html_path = inputs.normalize_data_path(a.from_html, (".html", ".htm", ".txt"))
+        except ValueError as exc:
+            p.error(str(exc))
+        if not html_path.is_file() or html_path.is_symlink():
+            p.error("HTML file is missing or is a symlink")
+        if html_path.stat().st_size > 2_000_000:
+            p.error("HTML file is larger than 2MB")
+        html = html_path.read_text(encoding="utf-8", errors="replace")
         insight = extract_price_insight(html)
         shown = {k: v for k, v in insight.items() if k != "history"}
         print(json.dumps(shown, indent=2))
@@ -412,16 +439,20 @@ def main(argv=None):
         return 0
     if not (a.origin and a.dest and a.date):
         p.error("origin, dest, and date are required unless --from-html is set")
+    origin = inputs.iata(a.origin, "origin", p)
+    dest = inputs.iata(a.dest, "destination", p)
+    depart = inputs.iso_date(a.date, "departure date", p).isoformat()
+    ret = inputs.iso_date(a.ret, "return date", p).isoformat() if a.ret else None
     summary = summarize(
         {
-            "origin": a.origin.upper(),
-            "destination": a.dest.upper(),
-            "depart_date": a.date,
-            "return_date": a.ret,
-            "cabin": a.cabin,
-            "adults": a.adults,
-            "children": a.children,
-            "currency": a.currency,
+            "origin": origin,
+            "destination": dest,
+            "depart_date": depart,
+            "return_date": ret,
+            "cabin": inputs.cabin(a.cabin, p),
+            "adults": inputs.bounded_int(a.adults, "--adults", p, 1, 9),
+            "children": inputs.bounded_int(a.children, "--children", p, 0, 9),
+            "currency": inputs.currency(a.currency, p),
         },
         path,
     )

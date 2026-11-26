@@ -23,7 +23,7 @@ It tells your AI agent how to:
 - compare each card's transfer partners using `cards/<country>.yaml`: points needed, taxes,
   value per point, caps, fees, transfer times (and research the issuer live if that country or
   card has no file yet);
-- lead with up to three picks, then one table of cash, points, other dates, and other airports;
+- lead with up to three picks (Cheapest, Best trip, Best points value (check seat)), then one table of cash, points, other dates, and other airports;
 - optionally set up a price-watch routine that alerts only on real drops.
 
 It **never books, pays, or transfers points** without your explicit go-ahead, and it must cite a
@@ -91,18 +91,29 @@ fetch time.
 
 Notes:
 - `fast-flights` is an unofficial scraper. It was tested working on 2026-11-25 (v3.1.0) on
-  LHR–JFK and BLR–DEL. Those were test routes, not preferred origins. It can break or be
+  LHR–JFK and SIN–SYD. Those were test routes, not preferred origins. It can break or be
   rate-limited at any time. If it fails, use Google Flights, Skyscanner or Kayak in a browser.
-- Round-trip results are less complete than one-way searches, so cross-check round trips in a
-  browser.
-- `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × `--airports` small.
+- A round trip fetches the return for the top few outbound options (`--return-picks`,
+  default 3, max 5). The price is the round-trip total from that second search. If the
+  return cannot be fetched, the row says `likely return flights (schedule only, not
+  price-linked)` or `return not fetched`. Elapsed time includes layovers. An airport code
+  with no usable result is retried as its metro city code (`HND` → `TYO`).
+  `--origin-airports` and `--dest-airports` search several airports and merge them. Still
+  cross-check a round trip in a browser.
+- `--delay` (default 1.5 s) spaces out requests. Keep `--flex` × airports small.
 
-`search.py` is an optional, unofficial scraper. The skill works without it. Each search appends
-the fare to `~/.flight-points-optimiser/history.jsonl` (override with `--history` or
-`$FLIGHT_POINTS_HISTORY`). `python history.py ORIG DEST YYYY-MM-DD` quotes Google's price words
-when they were stored, and always prints how many local observations exist and the first-seen
-date. Fewer than 5 observations, or a span under 7 days, is "not enough history". It does not
-score the graph. That is not a forecast.
+`search.py` is an optional, unofficial scraper. The skill works without it. When a search
+response contains Google's price words or a price graph, the script stores them with the fare
+in `~/.flight-points-optimiser/history.jsonl` (override with `--history` or
+`$FLIGHT_POINTS_HISTORY`). The directory is mode 0700 and the file is mode 0600, including
+an existing file the next time it is written. It stores the route, dates, cabin, passenger
+counts, currency, and price. It does not store names, passport numbers, or card numbers.
+`python history.py ORIG DEST YYYY-MM-DD` quotes Google's words when they were stored, and
+prints how many local observations exist and the first-seen date. Fewer than 5 observations,
+or a span under 7 days, is "not enough history". It does not score the graph. That is not a
+forecast. `watch.py` keeps the same kind of record in
+`~/.flight-points-optimiser/watch-ORIGIN-DEST-DATE.json`. Both names are gitignored if a
+run is pointed at this repo.
 
 ## Docs site
 

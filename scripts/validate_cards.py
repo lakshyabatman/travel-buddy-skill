@@ -16,6 +16,9 @@ except ImportError:
 class DateAsStringLoader(yaml.SafeLoader):
     """Keep ISO dates as strings so the schema can check YYYY-MM-DD."""
 
+    def ignore_aliases(self, _data):
+        return True
+
 
 # Drop the implicit timestamp resolver (YAML 1.1 would turn 2026-11-25 into datetime.date).
 for _ch, _resolvers in list(DateAsStringLoader.yaml_implicit_resolvers.items()):
@@ -45,7 +48,21 @@ def parse_args():
     return p.parse_args()
 
 
+def resolve_repo_file(path: Path) -> Path:
+    path = path.expanduser()
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    if path.is_symlink():
+        raise ValueError("refusing to read a symlink: %s" % path)
+    real = path.resolve()
+    root = ROOT.resolve()
+    if not real.is_relative_to(root):
+        raise ValueError("refusing to read outside the repository: %s" % path)
+    return real
+
+
 def load_yaml(path: Path):
+    path = resolve_repo_file(path)
     with path.open() as f:
         return yaml.load(f, Loader=DateAsStringLoader)
 
@@ -78,7 +95,7 @@ def check_date(label, raw, today, stale_days):
 def validate_fees(today, stale_days):
     """Validate fees/*.yaml. Missing snapshots are allowed; a broken one is not."""
     import json
-    files = sorted(FEES_DIR.glob("*.yaml")) if FEES_DIR.is_dir() else []
+    files = sorted(p for p in FEES_DIR.glob("*.yaml") if not p.is_symlink()) if FEES_DIR.is_dir() else []
     if not files:
         print("== fees/")
         print("  no snapshots (optional)")
@@ -91,6 +108,10 @@ def validate_fees(today, stale_days):
         print(f"== {path.relative_to(ROOT)}")
         try:
             doc = load_yaml(path)
+        except ValueError as e:
+            print(f"  ERROR: {e}")
+            errors += 1
+            continue
         except Exception as e:
             print(f"  ERROR: could not parse YAML: {e}")
             errors += 1
@@ -123,7 +144,7 @@ def validate_fees(today, stale_days):
 
 def main():
     args = parse_args()
-    files = [Path(f) for f in args.files] if args.files else sorted(CARDS_DIR.glob("*.yaml"))
+    files = [Path(f) for f in args.files] if args.files else sorted(p for p in CARDS_DIR.glob("*.yaml") if not p.is_symlink())
     if not files:
         print("No card files found.", file=sys.stderr)
         return 1
@@ -140,6 +161,10 @@ def main():
         print(f"== {path.relative_to(ROOT) if path.is_absolute() and ROOT in path.parents else path}")
         try:
             doc = load_yaml(path)
+        except ValueError as e:
+            print(f"  ERROR: {e}")
+            errors += 1
+            continue
         except Exception as e:
             print(f"  ERROR: could not parse YAML: {e}")
             errors += 1

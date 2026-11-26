@@ -60,9 +60,9 @@
       "option": "points · airline YY, 10–17 Mar",
       "pay_with": "64,000 miles + taxes",
       "true_total": "64,000 miles + €210",
-      "vs_cheapest": "€210 cash still due",
+      "vs_cheapest": "—",
       "trip": "10h, nonstop",
-      "catch": "Example only. Seat not checked. (unverified) ratio."
+      "catch": "Example only. Seat not checked. points, not cash. (unverified) ratio."
     }
   ],
   "no_cheaper_date": false,
